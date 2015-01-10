@@ -1,0 +1,9 @@
+*.eep
+*.hex
+*.elf
+*.lss
+*.lst
+*.o
+*.map
+*.sym
+.dep/
