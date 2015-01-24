@@ -44,6 +44,10 @@ void uart_init(void)
 	UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
 }
 
+inline uint8_t uart_available(void) {
+	return (1<<RXC0);
+}
+
 void uart_putc(unsigned char c)
 {
 		while (!(UCSR0A & (1<<UDRE0)))	/* warten bis Senden moeglich */
@@ -80,8 +84,20 @@ void uart_gets(char* Buffer, uint8_t MaxLen){
 		StringLen++;
 		NextChar = uart_getc();
 	}
- 
-																	// Noch ein '\0' anhängen um einen Standard
-																	// C-String daraus zu machen
 	*Buffer = '\0';
+}
+
+void read_uart(cRGB* leds) {
+	uint8_t lenghtH,lengthL,buff;
+	uint16_t datlen;
+	uint16_t dat_counter = 0;
+	if (!(uart_available())) {
+		return;
+	}
+	lenghtH = uart_getc();
+	lenghtL = uart_getc();
+	datlen = lengthH << 8 + lengthL;
+	while (dat_counter++ < datlen) {
+		buff = uart_getc();
+	}
 }

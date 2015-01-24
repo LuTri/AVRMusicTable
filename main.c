@@ -5,11 +5,13 @@
 #include <string.h>
 
 #define UART_WHOLE_COLOR 'f'
-#define N_LEDS 120
 
-struct cRGB leds[N_LEDS];
+extern cRGB leds[N_LEDS];
 
-void blocking_whole_color() {
+volatile uint16_t ovf_counter = 0;
+volatile uint16_t tim_counter = 0;
+
+/*void blocking_whole_color() {
 	uint8_t idx,r,g,b;
 	uint8_t start,end;
 	
@@ -24,20 +26,36 @@ void blocking_whole_color() {
 	}
 
 	uart_putc('f');
-	ws2812_setleds(leds,N_LEDS);
+	ws2812_setleds();
+}*/
+
+ISR(TIMER1_OVF_vect) {
+	ovf_counter++;
+}
+
+void start_timer(void) {
+	TIMSK1 |= (1<<TOIE1);
+	TCCR1 |= (1<<CS10);
+	sei();
+}
+
+void stop_timer(void) {
+	tim_counter = TCNT1;
+	TCCR1 &= ~(1<<CS10);
 }
 
 int main(void) {
-	uint8_t value;
 	uart_init();
-	memset(leds,0,120*3);
 
 	while(1) {
-		if (1<<RXC0) {
-			value = uart_getc();
-			if (value == UART_WHOLE_COLOR) {
-				blocking_whole_color();
-			}
-		}
+		start_timer();
+		read_uart((cRGB*)&leds);
+		stop_timer();
+//		if (uart_available()) {
+//			value = uart_getc();
+//			if (value == UART_WHOLE_COLOR) {
+//				blocking_whole_color();
+//			}
+//		}
 	}
 }
