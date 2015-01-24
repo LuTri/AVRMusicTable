@@ -2,6 +2,7 @@
 #define _HOSTCOM_H
 
 #include "../ws2812/light_ws2812.h"
+#include <stdlib.h>
 
 void uart_init(void);
 void uart_putc(unsigned char c);

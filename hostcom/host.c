@@ -45,7 +45,7 @@ void uart_init(void)
 }
 
 inline uint8_t uart_available(void) {
-	return (1<<RXC0);
+	return (UCSR0A & (1<<RXC0));
 }
 
 void uart_putc(unsigned char c)
@@ -66,7 +66,7 @@ void uart_puts(char* s) {
 
 uint8_t uart_getc(void)
 {
-		while (!(UCSR0A & (1<<RXC0)));	 // warten bis Zeichen verfuegbar
+		while (!(uart_available()));	 // warten bis Zeichen verfuegbar
 		return UDR0;									 // Zeichen aus UDR an Aufrufer zurueckgeben
 }
 
@@ -88,16 +88,47 @@ void uart_gets(char* Buffer, uint8_t MaxLen){
 }
 
 void read_uart(cRGB* leds) {
-	uint8_t lenghtH,lengthL,buff;
+	uint8_t idx = 0;
+	uint8_t lengthH,lengthL,buff;
 	uint16_t datlen;
 	uint16_t dat_counter = 0;
-	if (!(uart_available())) {
-		return;
+	char buf[100];
+	
+	lengthH = uart_getc();
+	lengthL = uart_getc();
+
+	datlen = (lengthH << 8) + lengthL;
+	for (idx = 0; idx < 100; idx++) {
+		buf[idx] = '\0';
 	}
-	lenghtH = uart_getc();
-	lenghtL = uart_getc();
-	datlen = lengthH << 8 + lengthL;
-	while (dat_counter++ < datlen) {
-		buff = uart_getc();
+
+
+	utoa(datlen,buf,10);
+
+	for (idx = 0; idx < 100; idx++) {
+		if (buf[idx] == '\0') {
+			buf[idx] = ' ';
+			buf[idx + 1] = 'L';
+			buf[idx + 2] = '\n';
+			break;
+		}
 	}
+
+	uart_puts(buf);
+
+	for (idx = 0; idx < 100; idx++) {
+		buf[idx] = '\0';
+	}
+	idx = 0;
+	while (dat_counter++ < datlen && uart_available()) {
+		buf[idx++] = uart_getc() + '0';
+	}
+
+	while (uart_available()) {
+		buf[idx++] = uart_getc();
+	}
+	buf[idx++] = ' ';
+	buf[idx++] = 'M';
+	buf[idx++] = '\n';
+	uart_puts(buf);
 }
