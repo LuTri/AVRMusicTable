@@ -87,48 +87,19 @@ void uart_gets(char* Buffer, uint8_t MaxLen){
 	*Buffer = '\0';
 }
 
-void read_uart(cRGB* leds) {
-	uint8_t idx = 0;
+void read_uart(uint8_t* leds) {
 	uint8_t lengthH,lengthL,buff;
 	uint16_t datlen;
-	uint16_t dat_counter = 0;
-	char buf[100];
 	
 	lengthH = uart_getc();
 	lengthL = uart_getc();
 
 	datlen = (lengthH << 8) + lengthL;
-	for (idx = 0; idx < 100; idx++) {
-		buf[idx] = '\0';
-	}
-
-
-	utoa(datlen,buf,10);
-
-	for (idx = 0; idx < 100; idx++) {
-		if (buf[idx] == '\0') {
-			buf[idx] = ' ';
-			buf[idx + 1] = 'L';
-			buf[idx + 2] = '\n';
-			break;
-		}
-	}
-
-	uart_puts(buf);
-
-	for (idx = 0; idx < 100; idx++) {
-		buf[idx] = '\0';
-	}
-	idx = 0;
-	while (dat_counter++ < datlen && uart_available()) {
-		buf[idx++] = uart_getc() + '0';
+	while (datlen--) {
+		*leds++ = uart_getc();
 	}
 
 	while (uart_available()) {
-		buf[idx++] = uart_getc();
+		buff = uart_getc();
 	}
-	buf[idx++] = ' ';
-	buf[idx++] = 'M';
-	buf[idx++] = '\n';
-	uart_puts(buf);
 }

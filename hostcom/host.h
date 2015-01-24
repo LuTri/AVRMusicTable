@@ -10,6 +10,6 @@ void uart_puts(char* s);
 uint8_t uart_getc(void);
 void uart_gets(char* Buffer, uint8_t MaxLen);
 uint8_t uart_available(void);
-void read_uart(cRGB* leds);
+void read_uart(uint8_t* leds);
 
 #endif
