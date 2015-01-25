@@ -12,4 +12,6 @@ void uart_gets(char* Buffer, uint8_t MaxLen);
 uint8_t uart_available(void);
 void read_uart(uint8_t* leds);
 
+volatile uint8_t UART_FLAGS;
+
 #endif
