@@ -1,24 +1,22 @@
 #include <avr/io.h>
 
 #include "config.h"
-#include "ws2812/light_ws2812.h"
-#include "hostcom/host.h"
+#include "modes.h"
 
-
-extern cRGB leds[N_LEDS];
+extern uint8_t mode;
 
 int main(void) {
-	uint8_t val = STAT_LED;
-	DDRB = STAT_LED;
-	
 	uart_init();
 
 	while(1) {
-		if (uart_available()) {
-			read_uart((uint8_t*)&leds);
-			ws2812_setleds();
-			uart_puts("ack\n");
+		if (mode == CMD_SLAVEMODE) {
+			slave();
+		} else if (mode == CMD_MOOD) {
+			mood();
+		} else if (mode == CMD_SOUNDTOLIGHT) {
+			sound();
+		} else {
+			mode = CMD_SLAVEMODE;
 		}
-		
 	}
 }
