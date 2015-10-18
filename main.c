@@ -14,7 +14,7 @@ int main(void) {
 	uart_init();
 
 	while(1) {
-		if (uart_available()) {
+		if (UART_FLAGS & (1<<1)) {
 			val ^= 0b00100000;
 			PORTB = val;
 			read_uart((uint8_t*)&leds);
