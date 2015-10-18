@@ -8,18 +8,16 @@
 extern cRGB leds[N_LEDS];
 
 int main(void) {
-	uint8_t val = 0b00100000;
-	DDRB = 0b00100000;
+	uint8_t val = STAT_LED;
+	DDRB = STAT_LED;
 	
 	uart_init();
 
 	while(1) {
-		if (UART_FLAGS & (1<<1)) {
-			val ^= 0b00100000;
-			PORTB = val;
+		if (uart_available()) {
 			read_uart((uint8_t*)&leds);
-			uart_puts("ack\n");
 			ws2812_setleds();
+			uart_puts("ack\n");
 		}
 		
 	}
