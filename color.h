@@ -16,5 +16,6 @@ typedef struct {
 } HSV;
 
 void HsvToRgb(HSV* hsv_val, RGB* rgb);
+void fast_hsi(float value, float intensity, RGB* rgb);
 
 #endif
