@@ -52,7 +52,7 @@ TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c ws2812/light_ws2812.c hostcom/host.c modes.c color.c
+SRC = $(TARGET).c ws2812/light_ws2812.c hostcom/host.c modes.c color.c moods/m1.c trans.c
 
 
 # List Assembler source files here.

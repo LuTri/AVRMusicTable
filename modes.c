@@ -1,7 +1,9 @@
 #include <avr/io.h>
 #include "modes.h"
 #include "color.h"
+#include "config.h"
 #include <util/delay.h>
+#include "moods.h"
 
 extern cRGB leds[N_LEDS];
 
@@ -22,8 +24,14 @@ void mood(void) {
 	HSV hsv;
 	RGB rgb;
 
+	void (*ptr[4])();
+
 	uint16_t idx;
-	uint16_t tmp;
+
+	ptr[0] = mood1;
+	ptr[1] = mood2;
+	ptr[2] = mood3;
+	ptr[3] = mood4;
 
 	last_rand_h += 0.02;
 	if (last_rand_h > 360) {
