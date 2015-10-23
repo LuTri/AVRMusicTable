@@ -21,7 +21,6 @@ void slave(void) {
 }
 
 void mood(void) {
-	HSV hsv;
 	RGB rgb;
 
 	void (*ptr[4])();
@@ -33,22 +32,12 @@ void mood(void) {
 	ptr[2] = mood3;
 	ptr[3] = mood4;
 
-	last_rand_h += 0.02;
-	if (last_rand_h > 360) {
+	last_rand_h += 1;
+	if (last_rand_h > 900) {
 		last_rand_h = 0;
 	}
 
-	hsv.h = last_rand_h;
-	hsv.V = 0.13;
-	hsv.S = 1.0;
-
-	HsvToRgb(&hsv, &rgb);
-
-//	tmp = rgb.r + rgb.g + rgb.b;
-
-//	rgb.r = (255.0 / (float)tmp) * rgb.r;
-//	rgb.g = (255.0 / (float)tmp) * rgb.g;
-//	rgb.b = (255.0 / (float)tmp) * rgb.b;
+	fast_hsi(last_rand_h, 0.2, &rgb);
 
 	for (idx = 0; idx < N_LEDS; idx++) {
 		leds[idx].r = rgb.r;
