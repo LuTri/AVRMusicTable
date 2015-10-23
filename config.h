@@ -9,4 +9,7 @@
 
 #define STAT_LED PB5
 
+#define N_COLS 14
+#define N_ROWS 8
+
 #endif
