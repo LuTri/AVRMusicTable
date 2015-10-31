@@ -13,12 +13,15 @@ void mood1(float h, float v, float distance, RGB* vals) {
 }
 
 void mood2(float h, float v, float distance, RGB* vals) {
+	fast_hsi(h, v, vals);
 }
 
 void mood3(float h, float v, float distance, RGB* vals) {
+	fast_hsi(h, v, vals);
 }
 
 void mood4(float h, float v, float distance, RGB* vals) {
+	fast_hsi(h, v, vals);
 }
 
 void (*funcs[])(float, float, float, RGB*) = {mood1, mood2, mood3, mood4};
