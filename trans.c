@@ -2,6 +2,8 @@
 #include "trans.h"
 #include "config.h"
 
+#include <math.h>
+
 /******************************************************************************
  *                                                                            *
  * Functions to compensate the "snakish" pattern of the leds:                 *
@@ -36,4 +38,23 @@ void snakish_to_coord(uint8_t snake, uint8_t* x, uint8_t* y) {
 			*x = snake - (*y * N_COLS);
 		}
 	}
+}
+
+float distance_coord(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
+	uint8_t x_sqr, y_sqr;
+	x_sqr = x1 * x2;
+	y_sqr = y1 * y2;
+
+	return sqrt(y_sqr + x_sqr);
+}
+
+float distance_snake(uint8_t pos1, uint16_t pos2) {
+	uint8_t x1,x2,y1,y2;
+	if (pos1 == pos2) {
+		return 0.0;
+	}
+	snakish_to_coord(pos1, &x1, &y1);
+	snakish_to_coord(pos2, &x2, &y2);
+
+	return distance_coord(x1,y1,x2,y2);
 }
