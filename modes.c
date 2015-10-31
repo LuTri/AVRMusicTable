@@ -9,9 +9,6 @@ extern cRGB leds[N_LEDS];
 
 uint8_t mode = CMD_MOOD;
 
-float last_rand_h = 0;
-float last_rand_v = 1.0;
-
 void slave(void) {
 	if (uart_available()) {
 		read_uart((uint8_t*)&leds);
@@ -21,23 +18,13 @@ void slave(void) {
 }
 
 void mood(void) {
-	RGB rgb;
+	static uint8_t func_idx = 0;
 
-	uint16_t idx;
-
-	last_rand_h += 1;
-	if (last_rand_h > 900) {
-		last_rand_h = 0;
+	if (uart_available()) {
+		func_idx = uart_getc();
 	}
 
-	fast_hsi(last_rand_h, 0.2, &rgb);
-
-	for (idx = 0; idx < N_LEDS; idx++) {
-		leds[idx].r = rgb.r;
-		leds[idx].g = rgb.g;
-		leds[idx].b = rgb.b;
-	}
-
+	fill_mood(0,1,1,func_idx);
 	ws2812_setleds();
 }
 
