@@ -23,14 +23,7 @@ void slave(void) {
 void mood(void) {
 	RGB rgb;
 
-	void (*ptr[4])();
-
 	uint16_t idx;
-
-	ptr[0] = mood1;
-	ptr[1] = mood2;
-	ptr[2] = mood3;
-	ptr[3] = mood4;
 
 	last_rand_h += 1;
 	if (last_rand_h > 900) {
