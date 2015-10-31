@@ -2,12 +2,11 @@
 
 HV mood_arr[N_COLS][N_ROWS];
 
-void fill_mood(fak_v, fak_h) {
+void fill_mood(uint16_t starting_pos, float starting_h, float starting_v,
+	uint8_t func) {
 }
 
 void mood1(void) {
-	uint8_t fak_v;
-	uint8_t fak_h;
 }
 
 void mood2(void) {

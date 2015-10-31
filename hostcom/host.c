@@ -91,7 +91,7 @@ void uart_gets(char* Buffer, uint8_t MaxLen) {
 }
 
 uint8_t read_uart(uint8_t* leds) {
-	uint8_t lengthH,lengthL,buff;
+	uint8_t lengthH,lengthL;
 	uint16_t datlen;
 
 	lengthH = uart_getc();
@@ -103,7 +103,7 @@ uint8_t read_uart(uint8_t* leds) {
 	}
 
 	while (uart_available()) {
-		buff = uart_getc();
+		uart_getc();
 	}
 
 	return 0;
