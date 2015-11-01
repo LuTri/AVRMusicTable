@@ -13,39 +13,6 @@
 	#error Systematischer Fehler der Baudrate grösser 1% und damit zu hoch! 
 #endif
 
-#define UART_CONT 1
-#define UART_SUCC 2
-#define UART_ERR 3
-#define UART_WATCHDOG 4
-
-volatile uint8_t UART_FLAGS = 0;
-
-/* UART WATCHDOG */ 
-ISR(TIMER0_OVF_vect) {
-	UART_FLAGS &= ~(1<<UART_CONT);
-}
-
-inline void reset_watchdog(void) {
-	TCNT0 = 0;
-}
-
-void start_watchdog(void) {
-	UART_FLAGS |= (1<<UART_CONT);
-	UART_FLAGS |= (1<<UART_WATCHDOG);
-	TIMSK0 |= (1<<TOIE0);
-	TCCR0B |= WATCHDOG_PRESCALER;
-	sei();
-}
-
-void stop_watchdog(void) {
-	cli();
-	reset_watchdog();
-	UART_FLAGS &= ~(1<<UART_CONT);
-	UART_FLAGS &= ~(1<<UART_WATCHDOG);
-	TIMSK0 &= ~(1<<TOIE0);
-	TCCR0B &= ~(WATCHDOG_PRESCALER);
-}
-
 void uart_init(void) {
 	UBRR0 = UBRR_VAL;
 	UCSR0B |= (1<<TXEN0) | (1<<RXEN0);
@@ -54,7 +21,7 @@ void uart_init(void) {
 }
 
 inline uint8_t uart_available(void) {
-	return (UCSR0A & (1<<RXC0)) && (!(UART_FLAGS & (1<<UART_WATCHDOG)) || (UART_FLAGS & (1<<UART_CONT)));
+	return (UCSR0A & (1<<RXC0));
 }
 
 void uart_putc(unsigned char c) {
