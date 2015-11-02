@@ -15,6 +15,8 @@ int main(void) {
 			mood();
 		} else if (mode == CMD_SOUNDTOLIGHT) {
 			sound();
+		} else if (mode == CMD_WHITE) {
+			white();
 		} else {
 			mode = CMD_SLAVEMODE;
 		}

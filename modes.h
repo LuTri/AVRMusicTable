@@ -8,6 +8,7 @@
 void slave(void);
 void mood(void);
 void sound(void);
+void white(void);
 
 extern uint8_t mode;
 
