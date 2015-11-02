@@ -5,7 +5,7 @@
 #include <util/delay.h>
 #include "moods.h"
 
-extern cRGB leds[N_LEDS];
+extern cRGB leds[N_PACKS];
 
 uint8_t mode = CMD_WHITE;
 
@@ -33,10 +33,10 @@ void sound(void) {
 
 void white(void) {
 	uint8_t idx;
-	for (idx = 0; idx < N_LEDS; idx++) {
-		leds[idx].r = 255;
-		leds[idx].g = 255;
-		leds[idx].b = 255;
+	for (idx = 0; idx < N_PACKS; idx++) {
+		leds[idx].r = 2;
+		leds[idx].g = 2;
+		leds[idx].b = 2;
 	}
 	ws2812_setleds();
 }

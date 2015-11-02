@@ -9,7 +9,7 @@ typedef struct { uint8_t g; uint8_t r; uint8_t b; } cRGB;
 
 void ws2812_setleds(void);
 
-cRGB leds[N_LEDS];
+cRGB leds[N_PACKS];
 
 #define CONCAT(a, b)            a ## b
 #define CONCAT_EXP(a, b)   CONCAT(a, b)

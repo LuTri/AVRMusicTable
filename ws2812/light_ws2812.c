@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-cRGB leds[N_LEDS];
+cRGB leds[N_PACKS];
 
 void ws2812_sendarray_mask(void);
  

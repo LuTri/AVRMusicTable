@@ -4,7 +4,7 @@
 #include "config.h"
 #include "trans.h"
 
-extern cRGB leds[N_LEDS];
+extern cRGB leds[N_PACKS];
 
 uint16_t cycle = 0;
 
@@ -32,7 +32,7 @@ void fill_mood(uint8_t starting_pos, float starting_h, float starting_v,
 	float distance;
 	RGB rgb;
 
-	for (idx = 0; idx < N_LEDS; idx++) {
+	for (idx = 0; idx < N_PACKS; idx++) {
 		distance = distance_snake(idx, starting_pos);
 		(*funcs[func])(starting_h, starting_v, distance, &rgb);
 
