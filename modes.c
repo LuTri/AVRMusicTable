@@ -7,7 +7,7 @@
 
 extern cRGB leds[N_LEDS];
 
-uint8_t mode = CMD_MOOD;
+uint8_t mode = CMD_WHITE;
 
 void slave(void) {
 	if (uart_available()) {
@@ -29,4 +29,14 @@ void mood(void) {
 }
 
 void sound(void) {
+}
+
+void white(void) {
+	uint8_t idx;
+	for (idx = 0; idx < N_LEDS; idx++) {
+		leds[idx].r = 255;
+		leds[idx].g = 255;
+		leds[idx].b = 255;
+	}
+	ws2812_setleds();
 }
