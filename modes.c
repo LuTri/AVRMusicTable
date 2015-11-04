@@ -24,8 +24,9 @@ void mood(void) {
 		func_idx = uart_getc();
 	}
 
-	fill_mood(0,1,1,func_idx);
-	ws2812_setleds();
+	if ( fill_mood(30,1,1,func_idx) ) {
+		ws2812_setleds();
+	}
 }
 
 void sound(void) {
@@ -34,9 +35,7 @@ void sound(void) {
 void white(void) {
 	uint8_t idx;
 	for (idx = 0; idx < N_PACKS; idx++) {
-		leds[idx].r = 2;
-		leds[idx].g = 2;
-		leds[idx].b = 2;
+		leds[idx].r = leds[idx].g = leds[idx].b = 2;
 	}
 	ws2812_setleds();
 }
