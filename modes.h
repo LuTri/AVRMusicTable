@@ -1,9 +1,8 @@
 #ifndef _MODES_H
 #define _MODES_H
 
-#include "ws2812/light_ws2812.h"
+#include "globals.h"
 #include "hostcom/host.h"
-#include "config.h"
 
 void slave(void);
 void mood(void);
