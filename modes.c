@@ -7,13 +7,19 @@
 
 extern cRGB leds[N_PACKS];
 
-uint8_t mode = CMD_WHITE;
+uint8_t mode = CMD_SLAVEMODE;
 
 void slave(void) {
+	uint16_t bench;
+	char buf[2];
+
 	if (uart_available()) {
 		read_uart((uint8_t*)&leds);
-		ws2812_setleds();
-		uart_puts("ack\n");
+		bench = ws2812_setleds();
+		buf[0] = bench >> 8;
+		buf[1] = bench;
+		uart_putc(buf[0]);
+		uart_putc(buf[1]);
 	}
 }
 
