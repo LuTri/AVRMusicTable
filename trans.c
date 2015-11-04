@@ -1,6 +1,6 @@
 #include <avr/io.h>
 #include "trans.h"
-#include "config.h"
+#include "globals.h"
 
 #include <math.h>
 

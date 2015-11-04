@@ -1,8 +1,8 @@
 #include <avr/io.h>
+#include <util/delay.h>
 #include "modes.h"
 #include "color.h"
-#include "config.h"
-#include <util/delay.h>
+#include "ws2812.h"
 #include "moods.h"
 
 extern cRGB leds[N_PACKS];
