@@ -1,6 +1,6 @@
 #include <avr/io.h>
 
-#include "config.h"
+#include "globals.h"
 #include "modes.h"
 
 extern uint8_t mode;

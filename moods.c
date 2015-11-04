@@ -1,7 +1,7 @@
 #include "moods.h"
 #include "modes.h"
 #include "color.h"
-#include "config.h"
+#include "ws2812.h"
 #include "trans.h"
 
 extern cRGB leds[N_PACKS];
