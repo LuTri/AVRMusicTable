@@ -4,24 +4,24 @@
 #define FIRST_THIRD RANGE/3
 #define SECOND_THIRD RANGE - FIRST_THIRD
 
-inline float cycle(float value, float step) {
-	while (value < 0) value += step;
-	while (value >= step) value -= step;
+inline float cycle(float val, float step) {
+	while (val < 0) val += step;
+	while (val >= step) val -= step;
 
-	return value;
+	return val;
 }
 
-void fast_hsi(float value, float intensity, RGB* rgb) {
+void fast_hsi(float hue, float intensity, RGB* rgb) {
 	float r_p = 0, g_p = 0, b_p = 0;
 	float tmp_val;
 		
-	value = cycle(value,RANGE);
-	tmp_val = RANGE - cycle(value, RANGE);
+	hue = cycle(hue,RANGE);
+	tmp_val = RANGE - cycle(hue, RANGE);
 
-	if (value >= 0 && value < FIRST_THIRD) {
+	if (hue >= 0 && hue < FIRST_THIRD) {
 		r_p = tmp_val * intensity;
 		g_p = (RANGE - tmp_val) * intensity;
-	} else if (value >= FIRST_THIRD && value < SECOND_THIRD) {
+	} else if (hue >= FIRST_THIRD && hue < SECOND_THIRD) {
 		g_p = tmp_val * intensity;
 		b_p = (RANGE - tmp_val) * intensity;
 	} else {
