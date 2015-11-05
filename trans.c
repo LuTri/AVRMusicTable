@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include "trans.h"
 #include "globals.h"
+#include "hostcom/host.h"
 
 #include <math.h>
 
@@ -41,14 +42,18 @@ void snakish_to_coord(uint8_t snake, uint8_t* x, uint8_t* y) {
 }
 
 float distance_coord(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
-	uint8_t x_sqr, y_sqr;
-	x_sqr = x1 * x2;
-	y_sqr = y1 * y2;
+	uint16_t x_sqr, y_sqr;
+
+	x_sqr = x1 + x2;
+	y_sqr = y1 + y2;
+
+	x_sqr = x_sqr * x_sqr;
+	y_sqr = y_sqr * y_sqr;
 
 	return sqrt(y_sqr + x_sqr);
 }
 
-float distance_snake(uint8_t pos1, uint16_t pos2) {
+float distance_snake(uint8_t pos1, uint8_t pos2) {
 	uint8_t x1,x2,y1,y2;
 	if (pos1 == pos2) {
 		return 0.0;

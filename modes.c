@@ -7,7 +7,7 @@
 
 extern cRGB leds[N_PACKS];
 
-uint8_t mode = CMD_SLAVEMODE;
+uint8_t mode = CMD_MOOD;
 
 void slave(void) {
 	uint16_t bench;
@@ -30,7 +30,7 @@ void mood(void) {
 		func_idx = uart_getc();
 	}
 
-	if ( fill_mood(30,1,1,func_idx) ) {
+	if ( fill_mood(0,100.0,1.0,func_idx) ) {
 		ws2812_setleds();
 	}
 }

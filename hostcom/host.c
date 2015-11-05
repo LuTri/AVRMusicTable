@@ -75,3 +75,12 @@ uint8_t read_uart(uint8_t* leds) {
 
 	return 0;
 }
+
+void writefloat(char* buf, float val) {
+	uint16_t pre, post;
+
+	pre = val;
+	post = (val - pre) * 1000;
+	
+	sprintf(buf, "%i.%i\n", pre, post);
+}
