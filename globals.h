@@ -3,8 +3,9 @@
 
 #define CMD_SOUNDTOLIGHT	0x01
 #define CMD_SLAVEMODE		0x02
-#define CMD_MOOD		0x03
-#define CMD_WHITE 0x04
+#define CMD_MOOD			0x03
+#define CMD_WHITE			0x04
+#define CMD_OFF				0x05
 
 #define STAT_LED PB5
 
