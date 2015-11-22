@@ -7,7 +7,7 @@
 
 extern cRGB leds[N_PACKS];
 
-uint8_t mode = CMD_WHITE;
+uint8_t mode = CMD_SLAVEMODE;
 
 void slave(void) {
 	uint16_t bench;
