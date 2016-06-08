@@ -11,15 +11,19 @@ uint8_t mode = CMD_SLAVEMODE;
 
 void slave(void) {
 	uint16_t bench;
+	uint8_t slave_mode;
 	char buf[2];
 
 	if (uart_available()) {
-		read_uart((uint8_t*)&leds);
-		bench = ws2812_setleds();
-		buf[0] = bench >> 8;
-		buf[1] = bench;
-		uart_putc(buf[0]);
-		uart_putc(buf[1]);
+		slave_mode = read_uart((uint8_t*)&leds);
+		if (slave_mode == CMD_SLAVE_CONT) {
+			bench = ws2812_setleds();
+			buf[0] = bench >> 8;
+			buf[1] = bench;
+			uart_putc(buf[0]);
+			uart_putc(buf[1]);
+		} else {
+		}
 	}
 }
 
