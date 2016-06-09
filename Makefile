@@ -54,6 +54,8 @@ TARGET = main
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c ws2812/light_ws2812.c hostcom/host.c
 
+SUBMODULES = avrclock
+
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -277,7 +279,7 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 # Default target.
 all: begin gccversion sizebefore build sizeafter finished end
 
-build: elf hex eep lss sym
+build: subsystems elf hex eep lss sym
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
@@ -285,7 +287,9 @@ eep: $(TARGET).eep
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
 
-
+# make subsystems
+subsystems:
+	$(MAKE) -C $(SUBMODULES)
 
 # Eye candy.
 # AVR Studio 3.x does not check make's exit code but relies on
