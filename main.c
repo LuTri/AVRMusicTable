@@ -17,7 +17,7 @@ int main(void) {
 
 	CustomTimer* timer = get_timer(0);
 
-	prepare_countdown(timer, seconds, 1, _cycle);
+	prepare_countdown(timer, seconds, 1, &_cycle);
 
 	while(1) {
 		if (mode == CMD_SLAVEMODE) {
