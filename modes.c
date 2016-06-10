@@ -41,7 +41,7 @@ void sound(void) {
 void white(void) {
 	uint8_t idx;
 	for (idx = 0; idx < N_PACKS; idx++) {
-		leds[idx].r = leds[idx].g = leds[idx].b = 0;
+		leds[idx].r = leds[idx].g = leds[idx].b = 255;
 	}
 	ws2812_setleds();
 }

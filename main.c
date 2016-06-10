@@ -3,10 +3,21 @@
 #include "globals.h"
 #include "modes.h"
 
+#include "AVRClock/customtimer.h"
+
 extern uint8_t mode;
 
+void _cycle(void) {
+	mode = CMD_MOOD;
+}
+
 int main(void) {
+	float seconds[1] = {3.0};
 	uart_init();
+
+	CustomTimer* timer = get_timer(0);
+
+	prepare_countdown(timer, seconds, 1, _cycle);
 
 	while(1) {
 		if (mode == CMD_SLAVEMODE) {
