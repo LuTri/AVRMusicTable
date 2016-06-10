@@ -54,7 +54,8 @@ TARGET = main
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c ws2812/light_ws2812.c hostcom/host.c
 
-SUBMODULES = avrclock
+SUBMODULES = AVRClock
+SUBOBJECTS = AVRClock/customtimer.o
 
 
 # List Assembler source files here.
@@ -383,7 +384,7 @@ extcoff: $(TARGET).elf
 %.elf: $(OBJ)
 	@echo
 	@echo $(MSG_LINKING) $@
-	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
+	$(CC) $(ALL_CFLAGS) $(OBJ) $(SUBOBJECTS) --output $@ $(LDFLAGS)
 
 
 # Compile: create object files from C source files.
