@@ -290,6 +290,7 @@ sym: $(TARGET).sym
 
 # make subsystems
 subsystems:
+	$(MAKE) -C $(SUBMODULES) clean
 	$(MAKE) -C $(SUBMODULES)
 
 # Eye candy.
