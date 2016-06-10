@@ -7,14 +7,10 @@ cRGB leds[N_PACKS];
 
 void ws2812_sendarray_mask(void);
  
-uint16_t ws2812_setleds(void) {
-	TCNT1 = 0;
-	TCCR1B |= (1<<CS10); // Prescaler 64
+void ws2812_setleds(void) {
 	ws2812_DDRREG |= ws2812_pin; // Enable DDR
 	ws2812_sendarray_mask();
 	_delay_us(50);
-	TCCR1B &= ~(1<<CS10); // off
-	return TCNT1;
 }
 
 void inline ws2812_sendarray_mask(void) {
