@@ -13,7 +13,7 @@
 #define N_ROWS 8
 
 #define ws2812_port B     // Data port 
-#define ws2812_pin  0b00010000     // Data out pin
+#define ws2812_pin  0b00010000     // Data out pin -> D12 / PB4
 
 #define CONCAT(a, b)            a ## b
 #define CONCAT_EXP(a, b)   CONCAT(a, b)
