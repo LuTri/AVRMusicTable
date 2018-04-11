@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <stdlib.h>
 
 #include "globals.h"
 #include "modes.h"
