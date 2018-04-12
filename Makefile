@@ -50,7 +50,7 @@ FORMAT = ihex
 TARGET = main
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c ws2812.c hostcom/host.c
+SRC = $(TARGET).c ws2812.c hostcom/host.c color.c
 
 SUBMODULES = AVRClock OdroidUart
 SUBOBJECTS = AVRClock/customtimer.o OdroidUart/uart.o
