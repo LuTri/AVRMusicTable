@@ -1,9 +1,12 @@
 #include <avr/io.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <avr/interrupt.h>
 
-#include "config.h"
-#include "ws2812/light_ws2812.h"
-#include "hostcom/host.h"
+#include "globals.h"
+#include "modes.h"
 
+#include "AVRClock/customtimer.h"
 
 extern cRGB leds[N_LEDS];
 
