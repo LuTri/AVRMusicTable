@@ -23,6 +23,16 @@ void slave(void) {
 	}
 }
 
+void rgb(uint8_t r, uint8_t g, uint8_t b) {
+	uint8_t idx;
+	for (idx = 0; idx < N_PACKS; idx++) {
+		leds[idx].r = r;
+        leds[idx].g = g;
+        leds[idx].b = b;;
+	}
+	ws2812_setleds();
+}
+
 void mood(void) {
 	static uint8_t func_idx = 0;
 
@@ -39,20 +49,25 @@ void sound(void) {
 }
 
 void white(void) {
-	uint8_t idx;
-	for (idx = 0; idx < N_PACKS; idx++) {
-		leds[idx].r = leds[idx].g = leds[idx].b = 255;
-	}
-	ws2812_setleds();
+    rgb(255,255,255);
+}
+
+void red(void) {
+    rgb(255,0,0);
+}
+
+void blue(void) {
+    rgb(0,0,255);
+}
+
+void green(void) {
+    rgb(0,255,0);
 }
 
 void off(void) {
-	uint8_t idx;
-	for (idx = 0; idx < N_PACKS; idx++) {
-		leds[idx].r = leds[idx].g = leds[idx].b = 0;
-	}
-	ws2812_setleds();
+    rgb(0,0,0);
 }
+
 
 void byte(uint16_t value) {
 	uint8_t idx;

@@ -8,6 +8,9 @@ void slave(void);
 void mood(void);
 void sound(void);
 void white(void);
+void red(void);
+void green(void);
+void blue(void);
 void off(void);
 void byte(uint16_t value);
 
