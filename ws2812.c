@@ -1,16 +1,18 @@
-#include "light_ws2812.h"
+#include "ws2812.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
-cRGB leds[N_LEDS];
+cRGB leds[N_PACKS];
 
 void ws2812_sendarray_mask(void);
  
-void ws2812_setleds(void) {
+uint16_t ws2812_setleds(void) {
 	ws2812_DDRREG |= ws2812_pin; // Enable DDR
 	ws2812_sendarray_mask();
 	_delay_us(50);
+
+	return 0;
 }
 
 void inline ws2812_sendarray_mask(void) {
