@@ -268,9 +268,22 @@ LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 ### GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
 GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 
+TIMERNR=1
+TIMERBITS=16
+PRESCALER=1024
+export TIMERNR
+export TIMERBITS
+export PRESCALER
+export MCU
+export F_OSC
+
+TFLAGS = -DTIMERNR=$(TIMERNR)
+TFLAGS += -DTIMERBITS=$(TIMERBITS)
+TFLAGS += -DPRESCALER=$(PRESCALER)
+
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(TFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
