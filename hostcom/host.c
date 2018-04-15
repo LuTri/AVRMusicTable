@@ -3,7 +3,7 @@
 
 #define WATCHDOG_PRESCALER ((1<<CS02) | (1<<CS01))
  
-#define BAUD 500000UL			// Baudrate
+#define BAUD 38400UL			// Baudrate
  
 #define UBRR_VAL ((F_CPU+BAUD*8)/(BAUD*16)-1)	 // clever runden
 #define BAUD_REAL (F_CPU/(16*(UBRR_VAL+1)))		 // Reale Baudrate
@@ -16,12 +16,24 @@
 void uart_init(void) {
 	UBRR0 = UBRR_VAL;
 	UCSR0B |= (1<<TXEN0) | (1<<RXEN0);
-	// Frame Format: Asynchron 8N1
-	UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
+	// Frame Format: Asynchron 8bit 1stopbit even parity
+	UCSR0C = (UPM01)|(1<<UCSZ01)|(1<<UCSZ00);
 }
 
 inline uint8_t uart_available(void) {
 	return (UCSR0A & (1<<RXC0));
+}
+
+inline uint8_t parity_failed(void) {
+    return (UCSR0A & (1 << UPE0));
+}
+
+inline uint8_t frame_error(void) {
+    return (UCSR0A & (1 << FE0));
+}
+
+inline uint8_t data_overrun(void) {
+    return (UCSR0A & (1 << DOR0));
 }
 
 void uart_putc(unsigned char c) {
@@ -66,11 +78,17 @@ uint8_t read_uart(uint8_t* leds) {
 
 	datlen = (lengthH << 8) + lengthL;
 	while (datlen--) {
+        //wait for next byte
 		*leds++ = uart_getc();
-	}
-
-	while (uart_available()) {
-		uart_getc();
+        if (parity_failed()) {
+            return 1;
+        }
+        if (frame_error()) {
+            return 2;
+        }
+        if (data_overrun()) {
+            return 3;
+        }
 	}
 
 	return 0;

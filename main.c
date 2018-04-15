@@ -10,45 +10,67 @@
 
 #include <util/delay.h>
 
+uint8_t mcusr __attribute__ ((section (".noinit")));
+
+void echo_uart(void) {
+    char buf[100];
+    char echo[130];
+    uart_gets(buf, 100);
+
+    sprintf(echo, "!ECHO! %s !ECHO!\n", buf);
+    uart_puts(echo);
+}
+
+void resetFlagsInit(void) __attribute__ ((naked))
+                          __attribute__ ((used))
+                          __attribute__ ((section (".init0")));
+void resetFlagsInit(void)
+{
+  /*
+   * save the reset flags passed from the bootloader
+   * This is a "simple" matter of storing (STS) r2 in the special variable
+   * that we have created.  We use assembler to access the right variable.
+   */
+  __asm__ __volatile__ ("sts %0, r2\n" : "=m" (mcusr) :);
+}
+
 int main(void) {
-    T_CALLBACK functions[] = {
-        white, red, off, green, off,
-        white, red, off, green, off,
-    };
-    T_CALLBACK current = NULL;
-    float seconds[10] = {0.5,1.0,2.0,4.0,8.0,16.0,32.0,64.0,128.0,300.0};
-    uint8_t in_isr[10] = {0};
-    uart_init();
-    char buffer[100];
-    uint8_t idx = 0;
+    uint8_t idx;
+    uint8_t cmp = 0;
+    uint8_t mirror;
 
-    uart_puts("BOOTING MC\n");
-    sprintf(buffer, "RED is %p\n", red);
-    uart_puts(buffer);
-    sprintf(buffer, "WHITE is %p\n", white);
-    uart_puts(buffer);
-    sprintf(buffer, "GREEN is %p\n", green);
-    uart_puts(buffer);
-    sprintf(buffer, "BLUE is %p\n", blue);
-    uart_puts(buffer);
-    sprintf(buffer, "OFF is %p\n", off);
-    uart_puts(buffer);
+    mirror = mcusr;
 
-    sprintf(buffer, "MAX SECONDS is %.5f\n", MAX_SECONDS);
-    uart_puts(buffer);
+    DDRB |= (1 << STAT_LED);
+    PORTB &= ~(1 << STAT_LED);
 
-    reset_all_countdowns();
-    sprintf(buffer, "Setting countdowns returned %d\n",
-            prepare_countdowns(10, seconds, functions, in_isr));
-    uart_puts(buffer);
-    blue();
-    run_countdown();
-	while(1) {
-        current = get_current_callback();
-        if (current != NULL) {
-            sprintf(buffer, "Running callback %p, should be %p\n", current, functions[idx++]);
-            uart_puts(buffer);
-            (*current)();
-        }
-	};
+    boot();
+    _delay_ms(500);
+    off();
+    _delay_ms(2000);
+    while (mirror) {
+        cmp++;
+        mirror = mirror >> 1;
+    }
+
+    for (idx = 0; idx < cmp; idx++) {
+        _delay_ms(200);
+        PORTB ^= (1 << STAT_LED);
+        white();
+        _delay_ms(200);
+        PORTB ^= (1 << STAT_LED);
+        off();
+    }
+
+    if (mirror == 0) {
+        boot();
+        _delay_ms(500);
+        off();
+        uart_init();
+    }
+//    uart_puts("Mc is booted up!\n");
+	while(mirror == 0) {
+        slave();
+//        echo_uart();
+    }
 }
