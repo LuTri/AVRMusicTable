@@ -1,3 +1,6 @@
 [submodule "AVRClock"]
 	path = AVRClock
 	url = git@github.com:LuTri/AVRClock.git
+[submodule "RProgram"]
+	path = RProgram
+	url = git@github.com:LuTri/RProgram.git
