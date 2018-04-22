@@ -36,7 +36,6 @@
 # - DEPFLAGS according to Eric Weddingtion's fix (avrfreaks/gcc-forum)
 # - F_OSC Define in CFLAGS and AFLAGS
 
-
 # MCU name
 MCU = atmega328p
 
@@ -50,13 +49,11 @@ FORMAT = ihex
 # Target file name (without extension).
 TARGET = main
 
-
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c ws2812/light_ws2812.c hostcom/host.c
 
-SUBMODULES = AVRClock
-SUBOBJECTS = AVRClock/customtimer.o
-
+SUBMODULES = AVRClock OdroidUart
+SUBOBJECTS = AVRClock/customtimer.o OdroidUart/uart.o
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -66,8 +63,6 @@ SUBOBJECTS = AVRClock/customtimer.o
 # it will preserve the spelling of the filenames, and gcc itself does
 # care about how the name is spelled on its command-line.
 ASRC =
-
-
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
@@ -83,7 +78,6 @@ DEBUG = dwarf-2
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
 EXTRAINCDIRS =
-
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
@@ -116,8 +110,6 @@ CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
 CFLAGS += -DF_OSC=$(F_OSC)
 CFLAGS += -DF_CPU=$(F_OSC)
-
-
 
 # Assembler flags.
 #  -Wa,...:   tell GCC to pass this to the assembler.
@@ -171,9 +163,6 @@ LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 
-
-
-
 # Programming support using avrdude. Settings and variables.
 
 # Programming hardware: alf avr910 avrisp bascom bsd
@@ -210,8 +199,6 @@ AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
 
-
-
 # ---------------------------------------------------------------------------
 
 # Define directories, if needed.
@@ -220,7 +207,6 @@ DIRAVRBIN = $(DIRAVR)/bin
 DIRAVRUTILS = $(DIRAVR)/utils/bin
 DIRINC = .
 DIRLIB = $(DIRAVR)/avr/lib
-
 
 # Define programs and commands.
 SHELL = sh
@@ -232,9 +218,6 @@ NM = avr-nm
 AVRDUDE = avrdude
 REMOVE = rm -f
 COPY = cp
-
-
-
 
 # Define Messages
 # English
@@ -254,15 +237,11 @@ MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
 
-
-
-
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
 
 # Define all listing files.
 LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
-
 
 # Compiler flags to generate dependency files.
 ### GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
@@ -286,10 +265,6 @@ TFLAGS += -DPRESCALER=$(PRESCALER)
 ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(TFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
-
-
-
-
 # Default target.
 all: begin gccversion sizebefore build sizeafter finished end
 
@@ -301,9 +276,15 @@ eep: $(TARGET).eep
 lss: $(TARGET).lss
 sym: $(TARGET).sym
 
-# make subsystems
 subsystems:
-	$(MAKE) -C $(SUBMODULES)
+	for dir in $(SUBMODULES) ; do \
+        $(MAKE) -C  $$dir ; \
+    done
+
+clean_subsystems:
+	for dir in $(SUBMODULES) ; do \
+        $(MAKE) -C  $$dir clean ; \
+    done
 
 # Eye candy.
 # AVR Studio 3.x does not check make's exit code but relies on
@@ -319,7 +300,6 @@ end:
 	@echo $(MSG_END)
 	@echo
 
-
 # Display size of file.
 HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
 ELFSIZE = $(SIZE) -A $(TARGET).elf
@@ -329,20 +309,13 @@ sizebefore:
 sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
 
-
-
 # Display compiler version information.
 gccversion :
 	@$(CC) --version
 
-
-
 # Program the device.
 program: subsystems $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
-
-
-
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
@@ -362,8 +335,6 @@ extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_EXTENDED_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-ext-avr $< $(TARGET).cof
-
-
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
@@ -388,8 +359,6 @@ extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_SYMBOL_TABLE) $@
 	$(NM) -n $< > $@
-
-
 
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
@@ -418,10 +387,8 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_ASSEMBLING) $<
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
-
-
 # Target: clean project.
-clean: begin clean_list finished end
+clean: begin clean_list clean_subsystems finished end
 
 clean_list :
 	@echo
@@ -443,13 +410,10 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
 
-
-
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
-
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
-clean clean_list program
+clean clean_list program subsystems clean_subsystems
