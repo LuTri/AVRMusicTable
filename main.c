@@ -39,38 +39,39 @@ int main(void) {
     uint8_t cmp = 0;
     uint8_t mirror;
 
-    mirror = mcusr;
-
-    DDRB |= (1 << STAT_LED);
-    PORTB &= ~(1 << STAT_LED);
-
-    boot();
-    _delay_ms(500);
-    off();
-    _delay_ms(2000);
-    while (mirror) {
-        cmp++;
-        mirror = mirror >> 1;
-    }
-
-    for (idx = 0; idx < cmp; idx++) {
-        _delay_ms(200);
-        PORTB ^= (1 << STAT_LED);
-        white();
-        _delay_ms(200);
-        PORTB ^= (1 << STAT_LED);
-        off();
-    }
-
-    if (mirror == 0) {
-        boot();
-        _delay_ms(500);
-        off();
-        uart_init();
-    }
+//    mirror = mcusr;
+//
+//    DDRB |= (1 << STAT_LED);
+//    PORTB &= ~(1 << STAT_LED);
+//
+//    boot();
+//    _delay_ms(500);
+//    off();
+//    _delay_ms(2000);
+//    while (mirror) {
+//        cmp++;
+//        mirror = mirror >> 1;
+//    }
+//
+//    for (idx = 0; idx < cmp; idx++) {
+//        _delay_ms(200);
+//        PORTB ^= (1 << STAT_LED);
+//        white();
+//        _delay_ms(200);
+//        PORTB ^= (1 << STAT_LED);
+//        off();
+//    }
+//
+//    if (mirror == 0) {
+//        boot();
+//        _delay_ms(500);
+//        off();
+//        uart_init();
+//    }
 //    uart_puts("Mc is booted up!\n");
-	while(mirror == 0) {
-        slave();
+	while(1) {
+        mood();
+
 //        echo_uart();
     }
 }
