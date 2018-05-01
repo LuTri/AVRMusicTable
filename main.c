@@ -12,15 +12,6 @@
 
 uint8_t mcusr __attribute__ ((section (".noinit")));
 
-void echo_uart(void) {
-    char buf[100];
-    char echo[130];
-    uart_gets(buf, 100);
-
-    sprintf(echo, "!ECHO! %s !ECHO!\n", buf);
-    uart_puts(echo);
-}
-
 void resetFlagsInit(void) __attribute__ ((naked))
                           __attribute__ ((used))
                           __attribute__ ((section (".init0")));

@@ -10,19 +10,9 @@ extern cRGB leds[N_PACKS];
 uint8_t mode = CMD_WHITE;
 
 void slave(void) {
-    uint8_t status = 0;
-	if (uart_available()) {
-        status = read_uart((uint8_t*)&leds);
-        if (status == 1) {
-            red();
-        } else if (status == 2) {
-            green();
-        } else if (status == 3) {
-            blue();
-        } else {
-    		uart_putc(ws2812_setleds());
-        }
-	}
+    uint16_t size;
+    size = uart_prot_read((uint8_t*)&leds, N_LEDS);
+    ws2812_setleds();
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {
@@ -33,18 +23,6 @@ void rgb(uint8_t r, uint8_t g, uint8_t b) {
         leds[idx].b = b;;
 	}
 	ws2812_setleds();
-}
-
-void mood(void) {
-	static uint8_t func_idx = 0;
-
-	if (uart_available()) {
-		func_idx = uart_getc();
-	}
-
-	if ( fill_mood(0,100.0,1.0,func_idx) ) {
-		ws2812_setleds();
-	}
 }
 
 void sound(void) {

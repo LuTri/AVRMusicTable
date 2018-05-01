@@ -5,7 +5,6 @@
 #include "OdroidUart/uart.h"
 
 void slave(void);
-void mood(void);
 void sound(void);
 void white(void);
 void red(void);
