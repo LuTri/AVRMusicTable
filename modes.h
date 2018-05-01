@@ -2,6 +2,7 @@
 #define _MODES_H
 
 #include "globals.h"
+#include "OdroidUart/uart.h"
 
 void slave(void);
 void mood(void);
