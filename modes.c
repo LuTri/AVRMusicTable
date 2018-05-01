@@ -12,7 +12,11 @@ uint8_t mode = CMD_WHITE;
 void slave(void) {
     uint16_t size;
     size = uart_prot_read((uint8_t*)&leds, N_LEDS);
-    ws2812_setleds();
+    if (size > 0) {
+        ws2812_setleds();
+    } else {
+        red();
+    }
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {

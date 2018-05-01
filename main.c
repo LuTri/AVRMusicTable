@@ -26,6 +26,8 @@ void resetFlagsInit(void)
 }
 
 int main(void) {
+    uart_setup();
+    green();
 	while(1) {
         if (has_incoming()) {
             slave();
