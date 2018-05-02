@@ -10,13 +10,18 @@ extern cRGB leds[N_PACKS];
 uint8_t mode = CMD_WHITE;
 
 void slave(void) {
+    uint8_t status = 255;
     uint16_t size;
-    size = uart_prot_read((uint8_t*)&leds, N_LEDS);
+    size = uart_prot_read((uint8_t*)&leds, N_LEDS, &status);
     if (size > 0) {
         ws2812_setleds();
-    } else {
+    } else if (status == 1) {
         red();
+    } else if (status == 2) {
+        blue();
     }
+    _delay_ms(500);
+    green();
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {
