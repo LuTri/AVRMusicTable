@@ -5,23 +5,61 @@
 #include "ws2812.h"
 #include "moods.h"
 
+#define FRAMEERROR (1 << FE0)
+#define OVERFLOWERROR (1 << DOR0)
+#define PARITYERROR (1 << UPE0)
+
 extern cRGB leds[N_PACKS];
 
 uint8_t mode = CMD_WHITE;
 
+void light_n_leds(uint16_t n) {
+    uint16_t idx;
+    off();
+    for (idx = 0; idx < n; idx++) {
+        leds[idx].r = 0;
+        leds[idx].g = 128;
+        leds[idx].b = 255;
+    }
+
+    ws2812_setleds();
+}
+
+void light_uart_status(void) {
+    uint16_t idx = uart_status_idx;
+    uint8_t status;
+    uint8_t doit = 0;
+    while (--idx) {
+        status = UART_STATI[idx];
+        if (status & FRAMEERROR) {
+            leds[idx].r = 255;
+            doit = 1;
+        }
+
+        if (status & OVERFLOWERROR) {
+            leds[idx].g = 255;
+            doit = 1;
+        }
+
+        if (status & PARITYERROR) {
+            leds[idx].b = 255;
+            doit = 1;
+        }
+    }
+    if (doit) {
+        ws2812_setleds();
+    }
+}
+
 void slave(void) {
+    uint8_t idx = 0;
     uint8_t status = 255;
     uint16_t size;
     size = uart_prot_read((uint8_t*)&leds, N_LEDS, &status);
     if (size > 0) {
         ws2812_setleds();
-    } else if (status == 1) {
-        red();
-    } else if (status == 2) {
-        blue();
     }
-    _delay_ms(500);
-    green();
+    light_uart_status();
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {

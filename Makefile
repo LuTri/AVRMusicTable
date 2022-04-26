@@ -173,9 +173,6 @@ LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 #
 AVRDUDE_PROGRAMMER = arduino
 
-# com1 = serial port. Use lpt1 to connect to parallel port.
-AVRDUDE_PORT = /dev/ttyACM99    # programmer connected to serial device
-
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
@@ -250,11 +247,19 @@ GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 TIMERNR=1
 TIMERBITS=16
 PRESCALER=1024
+BAUD_INT=250000
+
+AVRDUDE_PORT = /dev/ttyACM99
+
+USART_PORT = $(AVRDUDE_PORT)
+
 export TIMERNR
 export TIMERBITS
 export PRESCALER
 export MCU
 export F_OSC
+export BAUD_INT
+export USART_PORT
 
 TFLAGS = -DTIMERNR=$(TIMERNR)
 TFLAGS += -DTIMERBITS=$(TIMERBITS)
