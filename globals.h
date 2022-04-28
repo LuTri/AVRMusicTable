@@ -23,5 +23,7 @@
 #define N_PACKS N_ROWS * N_COLS
 #define N_LEDS (N_PACKS * 3)
 
+#define MAX_SNAKE_LENGTH 4
+
 
 #endif

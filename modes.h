@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "OdroidUart/uart.h"
 
+void snake(uint8_t idx, uint8_t r, uint8_t g, uint8_t b);
 void slave(void);
 void sound(void);
 void white(void);

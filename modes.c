@@ -51,6 +51,36 @@ void light_uart_status(void) {
     }
 }
 
+uint8_t _projection_distance(uint8_t led_idx, uint8_t snake_idx) {
+    uint8_t tmp;
+    if (led_idx > snake_idx)
+        tmp = led_idx - snake_idx;
+    else
+        tmp = snake_idx - led_idx;
+    
+    if (tmp > N_PACKS / 2)
+        return N_PACKS - tmp;
+    return tmp;
+}
+
+void snake(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
+    uint8_t loop_idx, distance;
+
+    for (loop_idx = 0; loop_idx < N_PACKS; loop_idx++) {
+        distance = _projection_distance(loop_idx, idx);
+        if (distance < MAX_SNAKE_LENGTH) {
+            leds[loop_idx].r = r >> (distance - 2);
+            leds[loop_idx].g = g >> (distance * 2);
+            leds[loop_idx].b = b >> distance;
+        } else {
+            leds[loop_idx].r = 0;
+            leds[loop_idx].g = 0;
+            leds[loop_idx].b = 0;
+        }
+    }
+    ws2812_setleds();
+}
+
 void slave(void) {
     uint8_t idx = 0;
     uint8_t status = 255;
@@ -67,7 +97,7 @@ void rgb(uint8_t r, uint8_t g, uint8_t b) {
 	for (idx = 0; idx < N_PACKS; idx++) {
 		leds[idx].r = r;
         leds[idx].g = g;
-        leds[idx].b = b;;
+        leds[idx].b = b;
 	}
 	ws2812_setleds();
 }
