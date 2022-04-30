@@ -89,7 +89,7 @@ void slave(void) {
     if (size > 0) {
         ws2812_setleds();
     }
-    light_uart_status();
+    //light_uart_status();
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {
@@ -152,4 +152,10 @@ void boot(void) {
 		leds[idx].b = 255 * (1 & (idx >> 2));
 	}
 	ws2812_setleds();
+}
+
+void indicate(uint8_t r, uint8_t g, uint8_t b) {
+    leds[N_COLS].r = r;
+    leds[N_COLS].g = g;
+    leds[N_COLS].b = b;
 }

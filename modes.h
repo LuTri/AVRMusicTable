@@ -13,6 +13,7 @@ void green(void);
 void blue(void);
 void off(void);
 void byte(uint16_t value);
+void indicate(uint8_t r, uint8_t g, uint8_t b);
 
 void boot(void);
 

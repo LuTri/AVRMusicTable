@@ -26,22 +26,21 @@ void resetFlagsInit(void)
 }
 
 int main(void) {
-    uint8_t counter = 0;
-
     uart_setup();
     off();
     _delay_ms(500);
     green();
     _delay_ms(500);
     off();
-	while(1) {
+    while(1) {
         if (has_incoming()) {
-            slave();
-        } else {
-            snake(counter, 54, 128, 89);
+	        slave();
 
-            counter++;
-            counter = counter % N_PACKS;
+            indicate(0, 255, 0);
+            ws2812_setleds();
+        } else {
+            indicate(0, 0, 0);
+            ws2812_setleds();
         }
     }
 }
