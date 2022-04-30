@@ -41,7 +41,9 @@ MCU = atmega328p
 
 # Main Oscillator Frequency
 # This is only used to define F_OSC in all assembler and c-sources.
-F_OSC = 16000000
+ifndef F_OSC
+	F_OSC = 16000000
+endif
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -247,7 +249,9 @@ GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 TIMERNR=1
 TIMERBITS=16
 PRESCALER=1024
-BAUD_INT=250000
+ifndef BAUD_INT
+	BAUD_INT=250000
+endif
 
 AVRDUDE_PORT = /dev/ttyACM99
 
