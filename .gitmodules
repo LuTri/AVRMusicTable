@@ -1,9 +1,6 @@
 [submodule "AVRClock"]
 	path = AVRClock
 	url = ../AVRClock
-[submodule "RProgram"]
-	path = RProgram
-	url = ../RProgram
 [submodule "OdroidUart"]
 	path = OdroidUart
 	url = ../OdroidUart
