@@ -1,9 +1,9 @@
 [submodule "AVRClock"]
 	path = AVRClock
-	url = git@github.com:LuTri/AVRClock.git
+	url = ../AVRClock
 [submodule "RProgram"]
 	path = RProgram
-	url = git@github.com:LuTri/RProgram.git
+	url = ../RProgram
 [submodule "OdroidUart"]
 	path = OdroidUart
-	url = git@github.com:LuTri/OdroidUart.git
+	url = ../OdroidUart
