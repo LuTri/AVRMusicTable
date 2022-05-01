@@ -28,19 +28,13 @@ void resetFlagsInit(void)
 int main(void) {
     uart_setup();
     off();
-    _delay_ms(500);
+    _delay_ms(250);
     green();
-    _delay_ms(500);
+    _delay_ms(250);
     off();
     while(1) {
         if (has_incoming()) {
-	        slave();
-
-            indicate(0, 255, 0);
-            ws2812_setleds();
-        } else {
-            indicate(0, 0, 0);
-            ws2812_setleds();
+            slave();
         }
     }
 }
