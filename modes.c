@@ -12,6 +12,10 @@
 extern cRGB leds[N_PACKS];
 
 uint8_t mode = CMD_WHITE;
+void (*loop_fnc)(void) = &noop;
+cRGB loop_data[10];
+
+void noop(void) {}
 
 void light_n_leds(uint16_t n) {
     uint16_t idx;
@@ -51,6 +55,20 @@ void light_uart_status(void) {
     }
 }
 
+void handle_data(void) {
+  uint16_t size;
+  uint8_t cmd, status;
+
+  size = uart_prot_read((uint8_t*)&leds, &cmd, N_LEDS, &status);
+  switch (cmd) {
+    case CMD_SLAVEMODE:
+      slave(size);
+    case CMD_SNAKE:
+      snake(*leds[0], *leds[1], *leds[2]);
+  }
+}
+
+
 uint8_t _projection_distance(uint8_t led_idx, uint8_t snake_idx) {
     uint8_t tmp;
     if (led_idx > snake_idx)
@@ -63,9 +81,8 @@ uint8_t _projection_distance(uint8_t led_idx, uint8_t snake_idx) {
     return tmp;
 }
 
-void snake(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
+void _snake(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
     uint8_t loop_idx, distance;
-
     for (loop_idx = 0; loop_idx < N_PACKS; loop_idx++) {
         distance = _projection_distance(loop_idx, idx);
         if (distance < MAX_SNAKE_LENGTH) {
@@ -81,15 +98,31 @@ void snake(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
     ws2812_setleds();
 }
 
-void slave(void) {
-    uint8_t idx = 0;
-    uint8_t status = 255;
-    uint16_t size;
-    size = uart_prot_read((uint8_t*)&leds, N_LEDS, &status);
+void snake_loop(void) {
+  static uint8_t idx;
+  _snake(idx++, loop_data[0].r, loop_data[0].g, loop_data[0].b);
+  if (idx >= N_PACKS) {
+    idx = 0;
+  }
+}
+
+void snake(uint8_t r, uint8_t g, uint8_t b) {
+    loop_data[0].r = r;
+    loop_data[0].g = g;
+    loop_data[0].b = b;
+
+    loop_fnc = &snake_loop;
+}
+
+void slave(uint16_t size) {
     if (size > 0) {
         ws2812_setleds();
+    } else {
+        off();
     }
     //light_uart_status();
+
+    loop_fnc = &noop;
 }
 
 void rgb(uint8_t r, uint8_t g, uint8_t b) {

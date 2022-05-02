@@ -34,7 +34,8 @@ int main(void) {
     off();
     while(1) {
         if (has_incoming()) {
-            slave();
+            handle_data();
         }
+        (*loop_fnc)();
     }
 }

@@ -6,6 +6,7 @@
 #define CMD_MOOD            0x03
 #define CMD_WHITE           0x04
 #define CMD_OFF             0x05
+#define CMD_SNAKE           0x06
 
 #define STAT_LED PB5
 
