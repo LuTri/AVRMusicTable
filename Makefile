@@ -1,6 +1,6 @@
 # Hey Emacs, this is a -*- makefile -*-
 #
-# WinAVR makefile written by Eric B. Weddington, Jörg Wunsch, et al.
+# WinAVR makefile written by Eric B. Weddington, Jï¿½rg Wunsch, et al.
 # Released to the Public Domain
 # Please read the make user manual!
 #
@@ -52,10 +52,12 @@ FORMAT = ihex
 TARGET = main
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c ws2812.c color.c trans.c moods.c modes.c
+COMMON_SRCS = ws2812.c color.c trans.c moods.c modes.c utils/analyse.c
+SRC = $(TARGET).c $(COMMON_SRCS)
 
-SUBMODULES = AVRClock OdroidUart
-SUBOBJECTS = AVRClock/customtimer.o OdroidUart/uart.o
+SUBMODULES := OdroidUart AVRClock
+FIND_CMD = $(shell find $(module) -not -path '*test*' -name '*.o')
+SUBOBJECTS = $(foreach module,$(SUBMODULES),$(FIND_CMD))
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -102,16 +104,25 @@ CINCS =
 #  -Wall...:     warning level
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -adhlns...: create assembler listing
-CFLAGS = -g$(DEBUG)
-CFLAGS += $(CDEFS) $(CINCS)
-CFLAGS += -O$(OPT)
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -Wall -Wstrict-prototypes
-CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
-CFLAGS += $(CSTANDARD)
+DEFAULT_FLAGS = -g$(DEBUG)
+DEFAULT_FLAGS += $(CDEFS) $(CINCS)
+DEFAULT_FLAGS += -O$(OPT)
+DEFAULT_FLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+DEFAULT_FLAGS += -Wall -Wstrict-prototypes
+DEFAULT_FLAGS += -Wa,-adhlns=$(<:.c=.lst)
+DEFAULT_FLAGS += -Werror
+DEFAULT_FLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
+DEFAULT_FLAGS += $(CSTANDARD)
+
+ifdef WS2812_PAUSE_INTERRUPTS
+    DEFAULT_FLAGS += -DWS2812_PAUSE_INTERRUPTS
+endif
+
+CFLAGS = $(DEFAULT_FLAGS)
 CFLAGS += -DF_OSC=$(F_OSC)
 CFLAGS += -DF_CPU=$(F_OSC)
+CFLAGS += -DBAUD=$(BAUD)
+
 
 # Assembler flags.
 #  -Wa,...:   tell GCC to pass this to the assembler.
@@ -210,6 +221,7 @@ DIRLIB = $(DIRAVR)/avr/lib
 # Define programs and commands.
 SHELL = sh
 CC = avr-gcc
+GCC = gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
@@ -235,6 +247,8 @@ MSG_LINKING = Linking:
 MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
+MSG_BACKUP = Backup config
+MSG_CLEAN_TESTS = Cleaning up unittests
 
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
@@ -246,38 +260,110 @@ LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 ### GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
 GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 
-TIMERNR=1
-TIMERBITS=16
-PRESCALER=1024
 ifndef BAUD_INT
-	BAUD_INT=250000
+	BAUD_INT = 500000
 endif
-
+BAUD = $(BAUD_INT)UL
+ifndef BUFFER_STATUS_BYTES
+    BUFFER_STATUS_BYTES=0
+endif
+ifndef UART_INTERRUPT
+	UART_INTERRUPT=1
+endif
 AVRDUDE_PORT = /dev/ttyACM99
+#AVRDUDE_PORT = /dev/ttySAC0
 
 USART_PORT = $(AVRDUDE_PORT)
 
+ifndef TIMERNR
+    TIMERNR=1
+endif
+
+ifndef PRESCALER
+    PRESCALER=64
+endif
+
 export TIMERNR
-export TIMERBITS
+
 export PRESCALER
+
+export MAX_COUNTDOWNS=1
+
 export MCU
+
 export F_OSC
+
 export BAUD_INT
+
 export USART_PORT
 
-TFLAGS = -DTIMERNR=$(TIMERNR)
-TFLAGS += -DTIMERBITS=$(TIMERBITS)
-TFLAGS += -DPRESCALER=$(PRESCALER)
+export BUFFER_STATUS_BYTES
+
+export UART_INTERRUPT
+
+CFLAGS += -DTIMERNR=$(TIMERNR)
+CFLAGS += -DPRESCALER=$(PRESCALER)
+CFLAGS += -ftrack-macro-expansion=0
+CFLAGS += -fno-diagnostics-show-caret
+CFLAGS += -fdiagnostics-color=auto
+
+# Configuration backups
+UART_CFG = .usart.ini
+CONT_CFG = control.meta
+
+_CFG_FILES = $(UART_CFG) $(CONT_CFG)
+
+CFG_SRC_DIR = OdroidUart/
+CFG_BAK_DIR = .cfgs/
+
+CFGS = $(addprefix $(CFG_SRC_DIR),$(_CFG_FILES))
+CFG_BACKUPS = $(subst $(CFG_SRC_DIR),$(CFG_BAK_DIR),$(CFGS))
+
+# Python virtual env / Django manage configuration
+VIRTUAL_ENV = $(realpath ./../)
+
+VPYTHON = $(VIRTUAL_ENV)/bin/python
+VSCRIPT = $(VIRTUAL_ENV)/manage.py
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(TFLAGS) $(GENDEPFLAGS)
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+
+TEST_FLAGS = -lm
+TEST_FLAGS += -lcunit
+
+TARGET_TESTS = $(TESTED_SRCS:.c=.unittest)
+TESTED_SRCS = trans.c color.c
+UNIT_SRC = unittests.c
+
+# Define all test object files.
+TEST_SRCS = $(COMMON_SRCS) $(UNIT_SRC)
+TEST_OBJ = $(TEST_SRCS:.c=.TEST.o)
 
 # Default target.
 all: begin gccversion sizebefore build sizeafter finished end
 
-build: subsystems elf hex eep lss sym
+test : runtest cleantests end
+
+cleantests :
+	@echo
+	@echo $(MSG_CLEAN_TESTS)
+	$(REMOVE) $(TARGET_TESTS)
+
+runtest : $(TARGET_TESTS)
+
+%.unittest: %.c unittests.c unittest.h
+	@echo
+	@echo comiling $@
+	$(GCC) -include $(subst .c,.h,$<) -DUNITTEST $(TEST_FLAGS) $(CFLAGS) $(UNIT_SRC) $< -o $@
+	./$@
+
+%.TEST.o: %.c
+	@echo
+	$(GCC) -DUNITTEST -c $(CFLAGS) $< -o $@
+
+build: backupconfig subsystems elf hex eep lss sym
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
@@ -334,6 +420,14 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .noinit-0x800000 \
 --change-section-address .eeprom-0x810000
 
+backupconfig : ${CFG_BACKUPS}
+
+${CFG_BACKUPS} :
+	@echo
+	@echo $(MSG_BACKUP) $@
+	@mkdir -p $(@D)
+	@touch $(subst $(CFG_BAK_DIR),$(CFG_SRC_DIR),$@) $@
+	@cp -f $(subst $(CFG_BAK_DIR),$(CFG_SRC_DIR),$@) $@
 
 coff: $(TARGET).elf
 	@echo
@@ -378,13 +472,33 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) $(SUBOBJECTS) --output $@ $(LDFLAGS)
 
-
 # Compile: create object files from C source files.
 %.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
 	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
+SHARED_DIR = shared
+
+shared : shared/color.so
+
+COLOR_SRC = color.c
+COLOR_OB = $(addprefix $(SHARED_DIR),$(COLOR_SRC:.c=.o))
+COLORLIB = $(addprefix $(SHARED_DIR),$(COLOR_OB:.o=.so))
+
+# Compile: create object files from C source files.
+$(SHARED_DIR)/%.o : %.c
+	@echo
+	@echo $(MSG_COMPILING) $<
+	@mkdir -p $(@D)
+	$(GCC) -D_LIB_SHARED -fPIC -c $(DEFAULT_FLAGS) $< -o $@
+
+# Compile: create object files from C source files.
+$(SHARED_DIR)/%.so : $(SHARED_DIR)/%.o
+	@echo
+	@echo $(MSG_COMPILING) $<
+	@mkdir -p $(@D)
+	$(GCC) -D_SO_SHARED -D_LIB_SHARED -shared -Wl,-soname,color.so $(CFLAGS) -o $@ $<
 
 # Compile: create assembler files from C source files.
 %.s : %.c
@@ -425,5 +539,5 @@ clean_list :
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
-build elf hex eep lss sym coff extcoff \
-clean clean_list program subsystems clean_subsystems
+build elf hex eep lss sym coff extcoff cleantests \
+clean clean_list program subsystems clean_subsystems ${CFG_BACKUPS} test
