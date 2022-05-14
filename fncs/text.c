@@ -1,6 +1,5 @@
 #include "functionalities.h"
-#include "../ws2812.h"
-#include "../trans.h"
+#include "../display/trans.h"
 #include "../text/font.h"
 
 uint8_t translate_viewport_col(short offset, uint8_t col, short* roll_idx) {

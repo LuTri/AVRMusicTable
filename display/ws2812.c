@@ -1,18 +1,21 @@
 #include "ws2812.h"
+
+#ifndef UNITTEST
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#else
+#include "unittest.h"
+#endif
 
 cRGB leds[N_PACKS];
 
 void ws2812_sendarray_mask(void);
  
-uint16_t ws2812_setleds(void) {
+void ws2812_setleds(void) {
 	ws2812_DDRREG |= ws2812_pin; // Enable DDR
 	ws2812_sendarray_mask();
 	_delay_us(50);
-
-	return 0;
 }
 
 void inline ws2812_sendarray_mask(void) {
@@ -20,13 +23,19 @@ void inline ws2812_sendarray_mask(void) {
 	uint16_t datlen = N_LEDS;
 	uint8_t maskhi = ws2812_pin;
 	uint8_t curbyte,ctr,masklo;
+#if WS2812_PAUSE_INTERRUPTS
 	uint8_t sreg_prev;
-	
+#endif
+
 	masklo	=~maskhi&ws2812_PORTREG;
 	maskhi |=		ws2812_PORTREG;
-	sreg_prev=SREG;
-	cli();	
 
+#if WS2812_PAUSE_INTERRUPTS
+	sreg_prev=SREG;
+	cli();
+#endif
+
+#ifndef UNITTEST
 	while (datlen--) {
 	curbyte=*data++;
 	
@@ -54,6 +63,9 @@ void inline ws2812_sendarray_mask(void) {
 				"r" (masklo)
 		);
 	}
-	
+#endif /* ifndef UNITTEST */
+
+#if WS2812_PAUSE_INTERRUPTS
 	SREG=sreg_prev;
+#endif
 }

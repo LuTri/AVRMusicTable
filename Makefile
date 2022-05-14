@@ -295,7 +295,7 @@ TEST_FLAGS = -lm
 TEST_FLAGS += -lcunit
 
 TARGET_TESTS = $(TESTED_SRCS:.c=.unittest)
-TESTED_SRCS = trans.c color.c
+TESTED_SRCS = display/trans.c display/color.c
 UNIT_SRC = unittests.c
 
 # Define Messages
