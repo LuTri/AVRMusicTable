@@ -26,14 +26,20 @@ void _text_looper(void) {
         leds[idx].r = 0;
         leds[idx].g = 0;
         leds[idx].b = 0;
+    }
 
-        snakish_to_coord(idx, &col, &row);
+    for (col = 0; col < N_COLS; col++) {
+        uint8_t t_col = translate_viewport_col(viewport_offset, col, &roll_idx);
 
-        col = translate_viewport_col(viewport_offset, col, &roll_idx);
+        for (row = 0; row < N_ROWS; row++) {
+            if (roll_idx < (short)dat_len && roll_idx >= 0 && is_pixel_for_char(data[roll_idx], t_col, row)) {
+                /* skip pre   &&   on if pixel   */
+                uint8_t idx = coord_to_snakish(col, row);
 
-        if (roll_idx < (short)dat_len && roll_idx >= 0 && is_pixel_for_char(data[roll_idx], col, row)) {
-           /* skip pre   &&   on if pixel   */
-            leds[idx].b = 10;
+                leds[idx].r = char_r;
+                leds[idx].g = char_g;
+                leds[idx].b = char_b;
+            }
         }
     }
 
