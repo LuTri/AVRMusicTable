@@ -3,17 +3,65 @@
 # WinAVR makefile written by Eric B. Weddington, J�rg Wunsch, et al.
 # Released to the Public Domain
 # Please read the make user manual!
-#
-# Additional material for this makefile was submitted by:
-#  Tim Henigan
-#  Peter Fleury
-#  Reiner Patommel
-#  Sander Pool
-#  Frederik Rouleau
-#  Markus Pfaff
-#
-# On command line:
-#
+
+# mth 2004/09
+# Differences from WinAVR 20040720 sample:
+# - DEPFLAGS according to Eric Weddingtion's fix (avrfreaks/gcc-forum)
+# - F_OSC Define in CFLAGS and AFLAGS
+
+# MCU name
+MCU = atmega328p
+
+AVRDUDE_PORT = /dev/ttyACM99
+USART_PORT = $(AVRDUDE_PORT)
+
+# Main Oscillator Frequency
+# This is only used to define F_OSC in all assembler and c-sources.
+ifndef F_OSC
+	F_OSC = 16000000
+endif
+
+ifdef WS2812_PAUSE_INTERRUPTS
+	DEFAULT_FLAGS += -DWS2812_PAUSE_INTERRUPTS
+endif
+
+ifndef BAUD_INT
+	BAUD_INT = 500000
+endif
+BAUD = $(BAUD_INT)UL
+
+ifndef BUFFER_STATUS_BYTES
+	BUFFER_STATUS_BYTES=0
+endif
+ifndef UART_INTERRUPT
+	UART_INTERRUPT=1
+endif
+
+ifndef TIMERNR
+	TIMERNR=1
+endif
+
+ifndef PRESCALER
+    PRESCALER=64
+endif
+
+ifndef USE_MATH_LIB
+	USE_MATH_LIB=0
+	MATH_LIB = -lm
+endif
+
+# Export rewritten environment and new variables to each make fork.
+export USE_MATH_LIB
+export TIMERNR
+export PRESCALER
+export MAX_COUNTDOWNS=1
+export MCU
+export F_OSC
+export BAUD_INT
+export USART_PORT
+export BUFFER_STATUS_BYTES
+export UART_INTERRUPT
+
 # make all = Make software.
 #
 # make clean = Clean out built project files.
@@ -25,39 +73,40 @@
 #
 # make program = Download the hex file to the device, using avrdude.  Please
 #                customize the avrdude settings below first!
-#
-# make filename.s = Just compile filename.c into the assembler code only
-#
-# To rebuild project do "make clean" then "make all".
-#
-
-# mth 2004/09
-# Differences from WinAVR 20040720 sample:
-# - DEPFLAGS according to Eric Weddingtion's fix (avrfreaks/gcc-forum)
-# - F_OSC Define in CFLAGS and AFLAGS
-
-# MCU name
-MCU = atmega328p
-
-# Main Oscillator Frequency
-# This is only used to define F_OSC in all assembler and c-sources.
-ifndef F_OSC
-	F_OSC = 16000000
-endif
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
 
 # Target file name (without extension).
 TARGET = main
+TEST_TARGET = unittests
+
+EXPLICIT_TARGETS = $(TARGET) $(TEST_TARGET)
 
 # List C source files here. (C dependencies are automatically generated.)
-COMMON_SRCS = ws2812.c color.c trans.c moods.c modes.c utils/analyse.c
-SRC = $(TARGET).c $(COMMON_SRCS)
+COMMON_SRCS = ws2812.c color.c trans.c moods.c modes.c state.c fncs/*.c text/*.c utils/*.c
+#SRC = $(TARGET).c $(COMMON_SRCS)
 
+# Define all test object files.
+TEST_SRCS = $(COMMON_SRCS) $(UNIT_SRC)
+TEST_OBJ = $(TEST_SRCS:.c=.TEST.o)
+
+# Definition of recursively build submodules
 SUBMODULES := OdroidUart AVRClock
 FIND_CMD = $(shell find $(module) -not -path '*test*' -name '*.o')
 SUBOBJECTS = $(foreach module,$(SUBMODULES),$(FIND_CMD))
+
+# A Whitespace, that is usable in e.g. $subst
+SPACE:=
+SPACE +=
+
+# Automatically find all relevant source files by extension, ignore sources
+# from sumodules and explicit targets.
+IGNORE_PATTERN := $(SUBMODULES) $(EXPLICIT_TARGETS)
+PATTERN := ${subst \ ,,.*(${subst ${SPACE},,${addprefix |,${IGNORE_PATTERN}}}).*}
+FIXED_PATTERN := ${subst (|,(,$(PATTERN)}
+AUTO_SOURCES := $(patsubst ./%,%,$(shell find -regextype egrep -not -regex '$(FIXED_PATTERN)' -iname "*.c"))
+SOURCES := $(AUTO_SOURCES) $(TARGET).c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -96,7 +145,6 @@ CDEFS =
 # Place -I options here
 CINCS =
 
-
 # Compiler flags.
 #  -g*:          generate debugging information
 #  -O*:          optimization level
@@ -104,7 +152,7 @@ CINCS =
 #  -Wall...:     warning level
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -adhlns...: create assembler listing
-DEFAULT_FLAGS = -g$(DEBUG)
+DEFAULT_FLAGS += -g$(DEBUG)
 DEFAULT_FLAGS += $(CDEFS) $(CINCS)
 DEFAULT_FLAGS += -O$(OPT)
 DEFAULT_FLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
@@ -114,15 +162,10 @@ DEFAULT_FLAGS += -Werror
 DEFAULT_FLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 DEFAULT_FLAGS += $(CSTANDARD)
 
-ifdef WS2812_PAUSE_INTERRUPTS
-    DEFAULT_FLAGS += -DWS2812_PAUSE_INTERRUPTS
-endif
-
 CFLAGS = $(DEFAULT_FLAGS)
 CFLAGS += -DF_OSC=$(F_OSC)
 CFLAGS += -DF_CPU=$(F_OSC)
 CFLAGS += -DBAUD=$(BAUD)
-
 
 # Assembler flags.
 #  -Wa,...:   tell GCC to pass this to the assembler.
@@ -135,15 +178,13 @@ ASFLAGS = -Wa,-adhlns=$(<:.S=.lst),-gstabs
 ASFLAGS += -DF_OSC=$(F_OSC)
 ASFLAGS += -DF_CPU=$(F_OSC)
 
-
 #Additional libraries.
 
 # Minimalistic printf version
 PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
-
 # Floating point printf version (requires MATH_LIB = -lm below)
-PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
 
+PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
 PRINTF_LIB =
 
 # Minimalistic scanf version
@@ -151,10 +192,7 @@ SCANF_LIB_MIN = -Wl,-u,vfscanf -lscanf_min
 
 # Floating point + %[ scanf version (requires MATH_LIB = -lm below)
 SCANF_LIB_FLOAT = -Wl,-u,vfscanf -lscanf_flt
-
 SCANF_LIB =
-
-MATH_LIB = -lm
 
 # External memory options
 
@@ -188,7 +226,7 @@ AVRDUDE_PROGRAMMER = arduino
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
-
+AVRDUDE_READ_EEPROM = -U eeprom:r:eeprom.hex:i
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,
@@ -202,21 +240,12 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 # Increase verbosity level.  Please use this when submitting bug
 # reports about avrdude. See <http://savannah.nongnu.org/projects/avrdude>
 # to submit bug reports.
-#AVRDUDE_VERBOSE = -v -v
+AVRDUDE_VERBOSE = -v -v
 
 AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
-
-# ---------------------------------------------------------------------------
-
-# Define directories, if needed.
-DIRAVR = c:/winavr
-DIRAVRBIN = $(DIRAVR)/bin
-DIRAVRUTILS = $(DIRAVR)/utils/bin
-DIRINC = .
-DIRLIB = $(DIRAVR)/avr/lib
 
 # Define programs and commands.
 SHELL = sh
@@ -229,6 +258,46 @@ NM = avr-nm
 AVRDUDE = avrdude
 REMOVE = rm -f
 COPY = cp
+
+# Define all object files.
+OBJ = $(SOURCES:.c=.o) $(ASRC:.S=.o)
+
+# Define all listing files.
+LST = $(ASRC:.S=.lst) $(SOURCES:.c=.lst)
+
+# Compiler flags to generate dependency files.
+### GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
+GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
+
+CFLAGS += -DTIMERNR=$(TIMERNR)
+CFLAGS += -DPRESCALER=$(PRESCALER)
+CFLAGS += -ftrack-macro-expansion=0
+CFLAGS += -fno-diagnostics-show-caret
+CFLAGS += -fdiagnostics-color=auto
+
+# Configuration backups
+UART_CFG = .usart.ini
+CONT_CFG = control.meta
+
+_CFG_FILES = $(UART_CFG) $(CONT_CFG)
+
+CFG_SRC_DIR = OdroidUart/
+CFG_BAK_DIR = .cfgs/
+
+CFGS = $(addprefix $(CFG_SRC_DIR),$(_CFG_FILES))
+CFG_BACKUPS = $(subst $(CFG_SRC_DIR),$(CFG_BAK_DIR),$(CFGS))
+
+# Combine all necessary flags and optional flags.
+# Add target processor to flags.
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
+ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+
+TEST_FLAGS = -lm
+TEST_FLAGS += -lcunit
+
+TARGET_TESTS = $(TESTED_SRCS:.c=.unittest)
+TESTED_SRCS = trans.c color.c
+UNIT_SRC = unittests.c
 
 # Define Messages
 # English
@@ -250,105 +319,20 @@ MSG_CLEANING = Cleaning project:
 MSG_BACKUP = Backup config
 MSG_CLEAN_TESTS = Cleaning up unittests
 
-# Define all object files.
-OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
-
-# Define all listing files.
-LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
-
-# Compiler flags to generate dependency files.
-### GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
-GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
-
-ifndef BAUD_INT
-	BAUD_INT = 500000
-endif
-BAUD = $(BAUD_INT)UL
-ifndef BUFFER_STATUS_BYTES
-    BUFFER_STATUS_BYTES=0
-endif
-ifndef UART_INTERRUPT
-	UART_INTERRUPT=1
-endif
-AVRDUDE_PORT = /dev/ttyACM99
-#AVRDUDE_PORT = /dev/ttySAC0
-
-USART_PORT = $(AVRDUDE_PORT)
-
-ifndef TIMERNR
-    TIMERNR=1
-endif
-
-ifndef PRESCALER
-    PRESCALER=64
-endif
-
-export TIMERNR
-
-export PRESCALER
-
-export MAX_COUNTDOWNS=1
-
-export MCU
-
-export F_OSC
-
-export BAUD_INT
-
-export USART_PORT
-
-export BUFFER_STATUS_BYTES
-
-export UART_INTERRUPT
-
-CFLAGS += -DTIMERNR=$(TIMERNR)
-CFLAGS += -DPRESCALER=$(PRESCALER)
-CFLAGS += -ftrack-macro-expansion=0
-CFLAGS += -fno-diagnostics-show-caret
-CFLAGS += -fdiagnostics-color=auto
-
-# Configuration backups
-UART_CFG = .usart.ini
-CONT_CFG = control.meta
-
-_CFG_FILES = $(UART_CFG) $(CONT_CFG)
-
-CFG_SRC_DIR = OdroidUart/
-CFG_BAK_DIR = .cfgs/
-
-CFGS = $(addprefix $(CFG_SRC_DIR),$(_CFG_FILES))
-CFG_BACKUPS = $(subst $(CFG_SRC_DIR),$(CFG_BAK_DIR),$(CFGS))
-
-# Python virtual env / Django manage configuration
-VIRTUAL_ENV = $(realpath ./../)
-
-VPYTHON = $(VIRTUAL_ENV)/bin/python
-VSCRIPT = $(VIRTUAL_ENV)/manage.py
-
-# Combine all necessary flags and optional flags.
-# Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
-ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
-
-TEST_FLAGS = -lm
-TEST_FLAGS += -lcunit
-
-TARGET_TESTS = $(TESTED_SRCS:.c=.unittest)
-TESTED_SRCS = trans.c color.c
-UNIT_SRC = unittests.c
-
-# Define all test object files.
-TEST_SRCS = $(COMMON_SRCS) $(UNIT_SRC)
-TEST_OBJ = $(TEST_SRCS:.c=.TEST.o)
-
 # Default target.
 all: begin gccversion sizebefore build sizeafter finished end
 
-test : runtest cleantests end
+test : begin runtest cleantests end
+
+readeeprom : begin geteeprom finished end
+
+geteeprom :
+	@echo
+	@echo $(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_EEPROM)
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_EEPROM)
 
 cleantests :
 	@echo
-	@echo $(MSG_CLEAN_TESTS)
 	$(REMOVE) $(TARGET_TESTS)
 
 runtest : $(TARGET_TESTS)
@@ -478,28 +462,6 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_COMPILING) $<
 	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
-SHARED_DIR = shared
-
-shared : shared/color.so
-
-COLOR_SRC = color.c
-COLOR_OB = $(addprefix $(SHARED_DIR),$(COLOR_SRC:.c=.o))
-COLORLIB = $(addprefix $(SHARED_DIR),$(COLOR_OB:.o=.so))
-
-# Compile: create object files from C source files.
-$(SHARED_DIR)/%.o : %.c
-	@echo
-	@echo $(MSG_COMPILING) $<
-	@mkdir -p $(@D)
-	$(GCC) -D_LIB_SHARED -fPIC -c $(DEFAULT_FLAGS) $< -o $@
-
-# Compile: create object files from C source files.
-$(SHARED_DIR)/%.so : $(SHARED_DIR)/%.o
-	@echo
-	@echo $(MSG_COMPILING) $<
-	@mkdir -p $(@D)
-	$(GCC) -D_SO_SHARED -D_LIB_SHARED -shared -Wl,-soname,color.so $(CFLAGS) -o $@ $<
-
 # Compile: create assembler files from C source files.
 %.s : %.c
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
@@ -530,9 +492,15 @@ clean_list :
 	$(REMOVE) $(TARGET).lss
 	$(REMOVE) $(OBJ)
 	$(REMOVE) $(LST)
-	$(REMOVE) $(SRC:.c=.s)
-	$(REMOVE) $(SRC:.c=.d)
+	$(REMOVE) $(SOURCES:.c=.s)
+	$(REMOVE) $(SOURCES:.c=.d)
 	$(REMOVE) .dep/*
+
+listsources :
+	@echo
+#	@echo $(FIND) $(FIND_FLAGS)
+#	@find $(FIND_FLAGS)
+	@echo $(AUTO_SOURCES)
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
