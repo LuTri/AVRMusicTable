@@ -62,6 +62,12 @@ export USART_PORT
 export BUFFER_STATUS_BYTES
 export UART_INTERRUPT
 
+DIAGFLAGS = -ftrack-macro-expansion=0
+DIAGFLAGS += -fno-diagnostics-show-caret
+DIAGFLAGS += -fdiagnostics-color=auto
+
+export DIAGFLAGS
+
 # make all = Make software.
 #
 # make clean = Clean out built project files.
@@ -83,14 +89,6 @@ TEST_TARGET = unittests
 
 EXPLICIT_TARGETS = $(TARGET) $(TEST_TARGET)
 
-# List C source files here. (C dependencies are automatically generated.)
-COMMON_SRCS = ws2812.c color.c trans.c moods.c modes.c state.c fncs/*.c text/*.c utils/*.c
-#SRC = $(TARGET).c $(COMMON_SRCS)
-
-# Define all test object files.
-TEST_SRCS = $(COMMON_SRCS) $(UNIT_SRC)
-TEST_OBJ = $(TEST_SRCS:.c=.TEST.o)
-
 # Definition of recursively build submodules
 SUBMODULES := OdroidUart AVRClock
 FIND_CMD = $(shell find $(module) -not -path '*test*' -name '*.o')
@@ -107,6 +105,10 @@ PATTERN := ${subst \ ,,.*(${subst ${SPACE},,${addprefix |,${IGNORE_PATTERN}}}).*
 FIXED_PATTERN := ${subst (|,(,$(PATTERN)}
 AUTO_SOURCES := $(patsubst ./%,%,$(shell find -regextype egrep -not -regex '$(FIXED_PATTERN)' -iname "*.c"))
 SOURCES := $(AUTO_SOURCES) $(TARGET).c
+
+# Define all test object files.
+TEST_SRCS = $(SOURCES) $(UNIT_SRC)
+TEST_OBJ = $(TEST_SRCS:.c=.TEST.o)
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -271,9 +273,6 @@ GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DTIMERNR=$(TIMERNR)
 CFLAGS += -DPRESCALER=$(PRESCALER)
-CFLAGS += -ftrack-macro-expansion=0
-CFLAGS += -fno-diagnostics-show-caret
-CFLAGS += -fdiagnostics-color=auto
 
 # Configuration backups
 UART_CFG = .usart.ini
@@ -289,8 +288,8 @@ CFG_BACKUPS = $(subst $(CFG_SRC_DIR),$(CFG_BAK_DIR),$(CFGS))
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
-ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS) $(DIAGFLAGS)
+ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS) $(DIAGFLAGS)
 
 TEST_FLAGS = -lm
 TEST_FLAGS += -lcunit
@@ -380,13 +379,17 @@ end:
 	@echo
 
 # Display size of file.
+HEXSIZE_AVR = $(SIZE) -A --format=avr --mcu=$(MCU) --target=$(FORMAT) $(TARGET).hex
+ELFSIZE_AVR = $(SIZE) -A --format=avr --mcu=$(MCU) $(TARGET).elf
+
 HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
 ELFSIZE = $(SIZE) -A $(TARGET).elf
+
 sizebefore:
-	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_BEFORE); $(ELFSIZE); echo; fi
+	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_BEFORE); $(ELFSIZE); $(ELFSIZE_AVR); echo; fi
 
 sizeafter:
-	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
+	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); $(ELFSIZE_AVR); echo; fi
 
 # Display compiler version information.
 gccversion :
