@@ -91,9 +91,6 @@ void snake_loop(void) {
 }
 
 void snake(COMMAND_BUFFER* command) {
-    for (uint8_t i = 0; i < 13; i++) {
-        ((uint8_t*)loop_data)[i] = command->data[i];
-    }
-
+    loop_data = command->data;
     loop_fnc = &snake_loop;
 }

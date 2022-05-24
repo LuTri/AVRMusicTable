@@ -96,10 +96,7 @@ void _text_looper(void) {
 }
 
 void text_writer(COMMAND_BUFFER* command) {
-    for (uint8_t i = 0; i < 60; i++) {
-        ((uint8_t*)loop_data)[i] = command->data[i];
-    }
-
+    loop_data = command->data;
     loop_counter = 0;
     viewport_offset = -N_COLS;
     loop_fnc = &_text_looper;

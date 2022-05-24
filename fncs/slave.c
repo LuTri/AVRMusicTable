@@ -3,7 +3,7 @@
 void slave(COMMAND_BUFFER* command) {
     for (uint16_t idx = 0; idx < N_LEDS; idx++) {
         if (idx < command->size) {
-
+            ((uint8_t*)&leds)[idx] = command->data[idx];
         } else {
             ((uint8_t*)&leds)[idx] = 0;
         }

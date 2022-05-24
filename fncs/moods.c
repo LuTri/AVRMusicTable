@@ -123,9 +123,7 @@ void mood_loop(void) {
 }
 
 void launch_mood(COMMAND_BUFFER* command) {
-	for (uint8_t idx = 0; idx < 9; idx ++) {
-		((uint8_t*)loop_data)[idx] = command->data[idx];
-	}
+	loop_data = command->data;
     bmark_counter = 0;
 	loop_fnc = &mood_loop;
 }

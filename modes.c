@@ -124,6 +124,9 @@ void handle_data(void) {
     }
 
     switch (next_command->cmd) {
+        case CMD_SOUNDTOLIGHT:
+            stl(next_command);
+            break;
         case CMD_SLAVE:
             slave(next_command);
             break;

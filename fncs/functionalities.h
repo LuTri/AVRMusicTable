@@ -21,11 +21,12 @@ void text_writer(COMMAND_BUFFER* command);
 void launch_mood(COMMAND_BUFFER* command);
 void snake(COMMAND_BUFFER* command);
 void slave(COMMAND_BUFFER* command);
+void stl(COMMAND_BUFFER* command);
 
 typedef void (*LOOP_PTR)(void);
 
 extern LOOP_PTR loop_fnc;
-extern uint8_t loop_data[60];
+extern uint8_t* loop_data;
 
 extern uint8_t DO_BENCHMARK;
 

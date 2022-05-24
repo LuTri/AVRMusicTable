@@ -2,7 +2,7 @@
 #include <avr/wdt.h>
 #include <avr/boot.h>
 
-uint8_t loop_data[60];
+uint8_t* loop_data = 0;
 uint8_t DO_BENCHMARK = 0; // REPLACE ME WITH STATE
 
 void reboot(void) {
