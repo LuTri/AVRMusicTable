@@ -61,6 +61,7 @@ void stl_loop(void) {
 }
 
 void stl(COMMAND_BUFFER* command) {
+    loop_fnc = 0;
     loop_data = command->data;
     hue_full = real_360_2byte(((uint8_t*)loop_data)[0],
                               ((uint8_t*)loop_data)[1]);
@@ -71,5 +72,6 @@ void stl(COMMAND_BUFFER* command) {
     dim_steps = dim_current;
 
     fast_hsi(hue_full, intensity, &full_color);
-    loop_fnc = &stl_loop;
+    stl_loop();
+    //loop_fnc = &stl_loop;
 }
