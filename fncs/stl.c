@@ -3,12 +3,13 @@
 #include "../display/trans.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
-#define CMD_OFFSET 6
+#define CMD_OFFSET 8
 
 uint16_t dim_current = 0;
 uint16_t dim_steps = 0;
 float dimming = 0;
 
+float target_hue = 0;
 float hue_full = 0;
 float intensity = 0;
 
@@ -27,7 +28,7 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row) {
         RGB color;
         float hue = (
             (float)(value - t_lower) /
-            (float)THRESHHOLD_STEP) * HSI_RANGE;
+            (float)THRESHHOLD_STEP) * (target_hue - hue_full);
 
         fast_hsi(hue_full + hue, intensity * dimming, &color);
         leds[snake_pos].r = color.r;
@@ -65,10 +66,12 @@ void stl(COMMAND_BUFFER* command) {
     loop_data = command->data;
     hue_full = real_360_2byte(((uint8_t*)loop_data)[0],
                               ((uint8_t*)loop_data)[1]);
-    intensity = per_one_2byte(((uint8_t*)loop_data)[2],
-                              ((uint8_t*)loop_data)[3]);
-    dim_current = dualbyte(((uint8_t*)loop_data)[4],
-                           ((uint8_t*)loop_data)[5]);
+    target_hue = real_360_2byte(((uint8_t*)loop_data)[2],
+                                ((uint8_t*)loop_data)[3]);
+    intensity = per_one_2byte(((uint8_t*)loop_data)[4],
+                              ((uint8_t*)loop_data)[5]);
+    dim_current = dualbyte(((uint8_t*)loop_data)[6],
+                           ((uint8_t*)loop_data)[7]);
     dim_steps = dim_current;
 
     fast_hsi(hue_full, intensity, &full_color);
