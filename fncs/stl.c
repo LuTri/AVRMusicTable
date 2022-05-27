@@ -15,22 +15,29 @@ float intensity = 0;
 
 RGB full_color;
 
+static const __flash float hues[8] = {
+    .0,
+    20.0,
+    62.0,
+    115.0,
+    120.0,
+    120.0,
+    120.0,
+    120.0
+};
+
 void bar_row(uint16_t value, uint8_t column, uint8_t row) {
     uint16_t t_upper = THRESHHOLD_STEP * (N_ROWS - row);
     uint16_t t_lower = t_upper - THRESHHOLD_STEP;
     uint8_t snake_pos = coord_to_snakish(column, row);
 
-    if (value >= t_upper) {
-        leds[snake_pos].r = full_color.r;
-        leds[snake_pos].g = full_color.g;
-        leds[snake_pos].b = full_color.b;
-    } else if (value > t_lower) {
+    if (value > t_lower) {
         RGB color;
-        float hue = (
-            (float)(value - t_lower) /
-            (float)THRESHHOLD_STEP) * (target_hue - hue_full);
+        //float hue = (
+        //    (float)(value - t_lower) /
+        //    (float)THRESHHOLD_STEP) * (target_hue - hue_full);
 
-        fast_hsi(hue_full + hue, intensity * dimming, &color);
+        fast_hsi(hues[row], ((float)value / (float)0xffff), &color);
         leds[snake_pos].r = color.r;
         leds[snake_pos].g = color.g;
         leds[snake_pos].b = color.b;
