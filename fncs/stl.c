@@ -3,10 +3,13 @@
 #include "../display/trans.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
-#define CMD_OFFSET 4
+#define CMD_OFFSET 6
 
+uint16_t fnc_counter = 0;
 uint16_t dim_current = 0;
 uint16_t dim_steps = 0;
+uint16_t dim_delay = 0;
+
 float dimming = 0;
 
 float intensity = 0;
@@ -43,10 +46,14 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row) {
 void stl_loop(void) {
     uint16_t values[N_COLS];
 
+    if (fnc_counter != dim_delay) {
+        fnc_counter++;
+        return;
+    }
+    fnc_counter = 0;
+
     dimming = (float)dim_current / (float)dim_steps;
-    if (dim_current > 0) {
-        dim_current--;
-    } else return;
+    if (--dim_current == 0) return;
 
     for (uint8_t idx = 0; idx < N_COLS; idx++) {
         values[idx] = dualbyte(((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
@@ -69,7 +76,10 @@ void stl(COMMAND_BUFFER* command) {
                               ((uint8_t*)loop_data)[1]);
     dim_current = dualbyte(((uint8_t*)loop_data)[2],
                            ((uint8_t*)loop_data)[3]);
+    dim_delay = dualbyte(((uint8_t*)loop_data)[4],
+                         ((uint8_t*)loop_data)[5]);
     dim_steps = dim_current;
+    fnc_counter = dim_delay;
 
     loop_fnc = &stl_loop;
 }
