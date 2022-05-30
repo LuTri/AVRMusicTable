@@ -44,6 +44,9 @@ void stl_loop(void) {
     uint16_t values[N_COLS];
 
     dimming = (float)dim_current / (float)dim_steps;
+    if (dim_current > 0) {
+        dim_current--;
+    } else return;
 
     for (uint8_t idx = 0; idx < N_COLS; idx++) {
         values[idx] = dualbyte(((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
@@ -57,7 +60,6 @@ void stl_loop(void) {
     }
 
     ws2812_setleds();
-    if (dim_current > 0) dim_current--;
 }
 
 void stl(COMMAND_BUFFER* command) {
