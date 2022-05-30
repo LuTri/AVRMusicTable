@@ -3,17 +3,13 @@
 #include "../display/trans.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
-#define CMD_OFFSET 8
+#define CMD_OFFSET 4
 
 uint16_t dim_current = 0;
 uint16_t dim_steps = 0;
 float dimming = 0;
 
-float target_hue = 0;
-float hue_full = 0;
 float intensity = 0;
-
-RGB full_color;
 
 static const __flash float hues[8] = {
     .0,
@@ -33,10 +29,6 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row) {
 
     if (value > t_lower) {
         RGB color;
-        //float hue = (
-        //    (float)(value - t_lower) /
-        //    (float)THRESHHOLD_STEP) * (target_hue - hue_full);
-
         fast_hsi(hues[row], ((float)value / (float)0xffff), &color);
         leds[snake_pos].r = color.r;
         leds[snake_pos].g = color.g;
@@ -71,17 +63,11 @@ void stl_loop(void) {
 void stl(COMMAND_BUFFER* command) {
     loop_fnc = 0;
     loop_data = command->data;
-    hue_full = real_360_2byte(((uint8_t*)loop_data)[0],
+    intensity = per_one_2byte(((uint8_t*)loop_data)[0],
                               ((uint8_t*)loop_data)[1]);
-    target_hue = real_360_2byte(((uint8_t*)loop_data)[2],
-                                ((uint8_t*)loop_data)[3]);
-    intensity = per_one_2byte(((uint8_t*)loop_data)[4],
-                              ((uint8_t*)loop_data)[5]);
-    dim_current = dualbyte(((uint8_t*)loop_data)[6],
-                           ((uint8_t*)loop_data)[7]);
+    dim_current = dualbyte(((uint8_t*)loop_data)[2],
+                           ((uint8_t*)loop_data)[3]);
     dim_steps = dim_current;
 
-    fast_hsi(hue_full, intensity, &full_color);
-    stl_loop();
-    //loop_fnc = &stl_loop;
+    loop_fnc = &stl_loop;
 }
