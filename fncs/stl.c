@@ -9,6 +9,7 @@ uint16_t fnc_counter = 0;
 uint16_t dim_current = 0;
 uint16_t dim_steps = 0;
 uint16_t dim_delay = 0;
+uint8_t new_vals = 0;
 
 float dimming = 0;
 
@@ -44,7 +45,11 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row) {
 }
 
 void stl_loop(void) {
-    uint16_t values[N_COLS];
+    static uint16_t values[N_COLS] = { 0 };
+    static uint16_t reference[N_COLS];
+    static uint16_t current[N_COLS];
+
+    uint16_t tmp_val;
 
     if (fnc_counter != dim_delay) {
         fnc_counter++;
@@ -52,12 +57,27 @@ void stl_loop(void) {
     }
     fnc_counter = 0;
 
+    if (dim_current == 0) return;
+
     dimming = (float)dim_current / (float)dim_steps;
-    if (--dim_current == 0) return;
+    dim_current--;
 
     for (uint8_t idx = 0; idx < N_COLS; idx++) {
-        values[idx] = dualbyte(((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
-                               ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET + 1]) * dimming;
+        if (new_vals) {
+            reference[idx] = current[idx];
+            current[idx] = dualbyte(
+                ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
+                ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET + 1]
+            );
+        }
+
+        if (current[idx] > reference[idx]) {
+            tmp_val = current[idx] * dimming;
+        } else {
+            tmp_val = reference[idx] * dimming;
+        }
+
+        values[idx] = tmp_val;
     }
 
     for (uint8_t col = 0; col < N_COLS; col++) {
@@ -66,6 +86,7 @@ void stl_loop(void) {
         }
     }
 
+    new_vals = 0;
     ws2812_setleds();
 }
 
@@ -80,6 +101,8 @@ void stl(COMMAND_BUFFER* command) {
                          ((uint8_t*)loop_data)[5]);
     dim_steps = dim_current;
     fnc_counter = dim_delay;
+
+    new_vals = 1;
 
     loop_fnc = &stl_loop;
 }
