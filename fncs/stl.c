@@ -46,7 +46,7 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row) {
 
 void stl_loop(void) {
     static uint16_t values[N_COLS] = { 0 };
-    static uint16_t reference[N_COLS];
+    static uint16_t previous[N_COLS];
     static uint16_t current[N_COLS];
 
     uint16_t tmp_val;
@@ -64,17 +64,17 @@ void stl_loop(void) {
 
     for (uint8_t idx = 0; idx < N_COLS; idx++) {
         if (new_vals) {
-            reference[idx] = current[idx];
+            previous[idx] = current[idx];
             current[idx] = dualbyte(
                 ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
                 ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET + 1]
             );
         }
 
-        if (current[idx] > reference[idx]) {
+        if (current[idx] > previous[idx]) {
             tmp_val = current[idx] * dimming;
         } else {
-            tmp_val = reference[idx] * dimming;
+            tmp_val = previous[idx] * dimming;
         }
 
         values[idx] = tmp_val;
