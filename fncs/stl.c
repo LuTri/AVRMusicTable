@@ -27,11 +27,9 @@ static const __flash float hues[8] = {
 };
 
 void bar_row(uint16_t value, uint8_t column, uint8_t row) {
-    uint16_t t_upper = THRESHHOLD_STEP * (N_ROWS - row);
-    uint16_t t_lower = t_upper - THRESHHOLD_STEP;
     uint8_t snake_pos = coord_to_snakish(column, row);
 
-    if (value > t_lower) {
+    if (value > THRESHHOLD_STEP * (N_ROWS - (row + 1))) {
         RGB color;
         fast_hsi(hues[row], ((float)value / (float)0xffff), &color);
         leds[snake_pos].r = color.r;
