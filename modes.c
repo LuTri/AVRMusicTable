@@ -1,15 +1,3 @@
-//#include <avr/io.h>
-//#include <stdlib.h>
-//
-//#include <util/delay.h>
-//#include "globals.h"
-//#include "modes.h"
-//#include "color.h"
-//#include "ws2812.h"
-//#include "state.h"
-//#include "OdroidUart/commands.h"
-//#include "OdroidUart/basic/config.h"
-//
 #include "fncs/functionalities.h"
 #include "state.h"
 
@@ -151,6 +139,9 @@ void handle_data(void) {
         	break;
         case CMD_SET_STATE:
             set_state(next_command);
+            break;
+        case CMD_GET_STATE:
+            get_state();
             break;
         default:
             break;

@@ -44,5 +44,6 @@ STATE* _get_state_ptr(void);
 extern STATE state;
 
 void set_state(COMMAND_BUFFER* command);
+void get_state(void);
 
 #endif

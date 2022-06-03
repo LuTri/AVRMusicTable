@@ -1,6 +1,7 @@
 #include "functionalities.h"
 #include "../display/color.h"
 #include "../display/trans.h"
+#include "../state.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
 #define CMD_OFFSET 6
@@ -15,18 +16,18 @@ float dimming = 0;
 
 float intensity = 0;
 
-static const __flash float hues[8] = {
-    .0,
-    20.0,
-    62.0,
-    115.0,
-    120.0,
-    120.0,
-    120.0,
-    120.0
-};
+//static const __flash float hues[8] = {
+//    .0,
+//    20.0,
+//    62.0,
+//    115.0,
+//    120.0,
+//    120.0,
+//    120.0,
+//    120.0
+//};
 
-void bar_row(uint16_t value, uint8_t column, uint8_t row) {
+void bar_row(uint16_t value, uint8_t column, uint8_t row, float* hues) {
     uint8_t snake_pos = coord_to_snakish(column, row);
 
     if (value > THRESHHOLD_STEP * (N_ROWS - (row + 1))) {
@@ -46,6 +47,7 @@ void stl_loop(void) {
     static uint16_t values[N_COLS] = { 0 };
     static uint16_t previous[N_COLS];
     static uint16_t current[N_COLS];
+    float* hues = GET_STATE(stl_hues);
 
     uint16_t tmp_val;
 
@@ -80,7 +82,7 @@ void stl_loop(void) {
 
     for (uint8_t col = 0; col < N_COLS; col++) {
         for (uint8_t row = 0; row < N_ROWS; row++) {
-            bar_row(values[col], col, row);
+            bar_row(values[col], col, row, hues);
         }
     }
 

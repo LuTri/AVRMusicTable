@@ -1,5 +1,6 @@
 #include "state.h"
 #include "OdroidUart/basic/fletcher.h"
+#include "OdroidUart/avr-uart/uart.h"
 
 #include <avr/eeprom.h>
 
@@ -87,4 +88,17 @@ void set_state(COMMAND_BUFFER* command) {
     for (uint8_t idx = 0; idx < N_ROWS; idx++) {
         state.stl_hues[idx] = ((float*)command->data)[idx];
     }
+    update_state_byte_at(8);
+}
+
+void get_state(void) {
+    startup_state();
+    uart0_puts(MSG_STATE_DATA);
+    for (uint8_t idx = 0; idx < N_ROWS; idx++) {
+        float* cur = &(state.stl_hues[idx]);
+        for (uint8_t f_idx = 0; f_idx < sizeof(float); f_idx++) {
+            uart0_putc(((uint8_t*)cur)[f_idx]);
+        }
+    }
+    uart0_puts(MSG_STATE_DATA_STOP);
 }
