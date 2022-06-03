@@ -11,6 +11,7 @@
 //#include "OdroidUart/basic/config.h"
 //
 #include "fncs/functionalities.h"
+#include "state.h"
 
 
 LOOP_PTR loop_fnc = 0;
@@ -148,9 +149,9 @@ void handle_data(void) {
         case CMD_WRITE:
             text_writer(next_command);
         	break;
-        case CMD_SET_DO_BENCHMARK:
-            DO_BENCHMARK = next_command->data[0];
-        	break;
+        case CMD_SET_STATE:
+            set_state(next_command);
+            break;
         default:
             break;
     }

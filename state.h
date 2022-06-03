@@ -2,6 +2,7 @@
 #define _STATE_H
 
 #include <avr/io.h>
+#include "OdroidUart/commands.h"
 
 #define STATE_DO_BENCHMARKS 0
 #define STATE_DO_RANDOM     1
@@ -20,7 +21,8 @@ typedef struct {
     uint8_t reboot_time_error;      // *STATE + 5
     uint8_t reboot_time_general;    // *STATE + 6
     uint8_t current_mode;           // *STATE + 7
-    uint16_t checksum;              // *STATE + 8
+    float stl_hues[N_COLS];         // *STATE + 8, 12, 16, 20, 24, 28, 32, 36, 40
+    uint16_t checksum;              // *STATE + 40
 } STATE;
 
 uint8_t recover_state(void);
@@ -40,5 +42,7 @@ STATE* _get_state_ptr(void);
     (_get_state_ptr()->member = value; archive_state_member(&(_get_state_ptr()->member)));
 
 extern STATE state;
+
+void set_state(COMMAND_BUFFER* command);
 
 #endif

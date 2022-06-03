@@ -34,8 +34,9 @@ void initialize_state(void) {
 
 void update_state_byte_at(uint8_t idx) {
     uint8_t size_t = 0;
-    if (idx < 4) size_t = 2;
-    else size_t = 1;
+    if (idx < 4) size_t = sizeof(uint16_t);
+    else if (idx < 8) size_t = sizeof(uint8_t);
+    else size_t = sizeof(float) * N_COLS;
 
     eeprom_update_block(((uint8_t*)&state) + idx, eeState + idx, size_t);
     /* always update the checksum accordingly */
@@ -79,4 +80,11 @@ void startup_state(void) {
 STATE* _get_state_ptr(void) {
     startup_state();
     return &state;
+}
+
+void set_state(COMMAND_BUFFER* command) {
+    startup_state();
+    for (uint8_t idx = 0; idx < N_ROWS; idx++) {
+        state.stl_hues[idx] = ((float*)command->data)[idx];
+    }
 }
