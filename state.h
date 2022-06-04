@@ -21,8 +21,11 @@ typedef struct {
     uint8_t reboot_time_error;      // *STATE + 5
     uint8_t reboot_time_general;    // *STATE + 6
     uint8_t current_mode;           // *STATE + 7
-    float stl_hues[N_COLS];         // *STATE + 8, 12, 16, 20, 24, 28, 32, 36, 40
-    uint16_t checksum;              // *STATE + 40
+    float stl_hues[N_COLS];         // *STATE + 8
+    uint16_t stl_intensity;         // *STATE + 40
+    uint16_t stl_fnc_counts;        // *STATE + 42
+    uint16_t stl_dim_counts;         // *STATE + 44
+    uint16_t checksum;              // *STATE + 46
 } STATE;
 
 uint8_t recover_state(void);

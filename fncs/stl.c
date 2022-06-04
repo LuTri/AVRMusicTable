@@ -32,7 +32,7 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row, float* hues) {
 
     if (value > THRESHHOLD_STEP * (N_ROWS - (row + 1))) {
         RGB color;
-        fast_hsi(hues[row], ((float)value / (float)0xffff), &color);
+        fast_hsi(hues[row], ((float)value / (float)0xffff) * intensity, &color);
         leds[snake_pos].r = color.r;
         leds[snake_pos].g = color.g;
         leds[snake_pos].b = color.b;
@@ -51,7 +51,7 @@ void stl_loop(void) {
 
     uint16_t tmp_val;
 
-    if (fnc_counter != dim_delay) {
+    if (fnc_counter != GET_STATE(stl_fnc_counts)) {
         fnc_counter++;
         return;
     }
@@ -59,7 +59,7 @@ void stl_loop(void) {
 
     if (dim_current == 0) return;
 
-    dimming = (float)dim_current / (float)dim_steps;
+    dimming = (float)dim_current / (float)GET_STATE(stl_dim_counts);
     dim_current--;
 
     for (uint8_t idx = 0; idx < N_COLS; idx++) {
@@ -93,14 +93,11 @@ void stl_loop(void) {
 void stl(COMMAND_BUFFER* command) {
     loop_fnc = 0;
     loop_data = command->data;
-    intensity = per_one_2byte(((uint8_t*)loop_data)[0],
-                              ((uint8_t*)loop_data)[1]);
-    dim_current = dualbyte(((uint8_t*)loop_data)[2],
-                           ((uint8_t*)loop_data)[3]);
-    dim_delay = dualbyte(((uint8_t*)loop_data)[4],
-                         ((uint8_t*)loop_data)[5]);
-    dim_steps = dim_current;
-    fnc_counter = dim_delay;
+    uint8_t* int_data = (uint8_t*)&GET_STATE(stl_intensity);
+
+    intensity = per_one_2byte(int_data[0],int_data[1]);
+    dim_current = GET_STATE(stl_dim_counts);
+    fnc_counter = 0;
 
     new_vals = 1;
 
