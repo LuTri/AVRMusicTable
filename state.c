@@ -12,7 +12,7 @@ STATE* CONSITENT_STATE = &state;
 uint8_t _loaded = STATE_UNLOADED;
 
 inline uint16_t create_state_checksum(void) {
-    return fletchers_checksum((uint8_t*)&state, sizeof(STATE) - 2);
+    return fletchers_checksum((uint8_t*)&state, sizeof(STATE) - sizeof(uint16_t));
 }
 
 inline uint8_t _verify_state(void) {
@@ -31,6 +31,12 @@ void initialize_state(void) {
     state.reboot_time_error = 0;
     state.reboot_time_general = 0;
     state.current_mode = 0;
+    for (uint8_t idx = 0; idx < N_ROWS; idx++) {
+        state.stl_hues[idx] = 0;
+    }
+    state.stl_intensity = 0;
+    state.stl_fnc_counts = 0;
+    state.stl_dim_counts = 0;
 }
 
 void update_state_byte_at(uint8_t idx, uint8_t write_checksum) {
@@ -44,7 +50,7 @@ void update_state_byte_at(uint8_t idx, uint8_t write_checksum) {
 
     if (write_checksum) {
         _update_checksum();
-        eeprom_update_block(((uint8_t*)&state) + (sizeof(STATE) - 2), eeState + (sizeof(STATE) - 2), 2);
+        eeprom_update_block(((uint8_t*)&state) + (sizeof(STATE) - sizeof(uint16_t)), eeState + (sizeof(STATE) - sizeof(uint16_t)), sizeof(uint16_t));
     }
 }
 

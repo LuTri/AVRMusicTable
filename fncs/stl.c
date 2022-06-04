@@ -4,7 +4,6 @@
 #include "../state.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
-#define CMD_OFFSET 6
 
 uint16_t fnc_counter = 0;
 uint16_t dim_current = 0;
@@ -66,8 +65,8 @@ void stl_loop(void) {
         if (new_vals) {
             previous[idx] = current[idx];
             current[idx] = dualbyte(
-                ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET],
-                ((uint8_t*)loop_data)[(idx << 1) + CMD_OFFSET + 1]
+                ((uint8_t*)loop_data)[(idx << 1)],
+                ((uint8_t*)loop_data)[(idx << 1) + 1]
             );
         }
 
@@ -97,7 +96,7 @@ void stl(COMMAND_BUFFER* command) {
 
     intensity = per_one_2byte(int_data[0],int_data[1]);
     dim_current = GET_STATE(stl_dim_counts);
-    fnc_counter = 0;
+    fnc_counter = GET_STATE(stl_fnc_counts);
 
     new_vals = 1;
 
