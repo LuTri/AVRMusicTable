@@ -43,8 +43,8 @@ void update_state_byte_at(uint8_t idx, uint8_t write_checksum) {
     uint8_t size_t = 0;
     if (idx < 4) size_t = sizeof(uint16_t);
     else if (idx < 8) size_t = sizeof(uint8_t);
-    else if (idx < 40) size_t = sizeof(float) * N_COLS;
-    else size_t = sizeof(uint16_t);
+    else if (idx < 14) size_t = sizeof(uint16_t);
+    else size_t = sizeof(float) * N_COLS;
 
     eeprom_update_block(((uint8_t*)&state) + idx, eeState + idx, size_t);
 
@@ -105,14 +105,16 @@ void set_state(COMMAND_BUFFER* command) {
         state.stl_hues[idx] = hue_ptr[idx];
     }
     update_state_byte_at(8, 0);
-    update_state_byte_at(40, 0);
-    update_state_byte_at(42, 0);
-    update_state_byte_at(44, 1);
+    update_state_byte_at(10, 0);
+    update_state_byte_at(12, 0);
+    update_state_byte_at(14, 1);
 }
 
 void get_state(void) {
     startup_state();
     uart0_puts(MSG_STATE_DATA);
+
+    uart0_putc(_loaded);
 
     uart0_putc(((uint8_t*)&state.stl_intensity)[0]);
     uart0_putc(((uint8_t*)&state.stl_intensity)[1]);
