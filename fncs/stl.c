@@ -7,24 +7,10 @@
 
 uint16_t fnc_counter = 0;
 uint16_t dim_current = 0;
-uint16_t dim_steps = 0;
-uint16_t dim_delay = 0;
 uint8_t new_vals = 0;
 
 float dimming = 0;
-
 float intensity = 0;
-
-//static const __flash float hues[8] = {
-//    .0,
-//    20.0,
-//    62.0,
-//    115.0,
-//    120.0,
-//    120.0,
-//    120.0,
-//    120.0
-//};
 
 void bar_row(uint16_t value, uint8_t column, uint8_t row, float* hues) {
     uint8_t snake_pos = coord_to_snakish(column, row);
