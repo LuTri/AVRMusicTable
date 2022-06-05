@@ -40,7 +40,7 @@ void hue_pulse(HVd* hvd, RGB* vals) {
 void hue_rotate(HVd* hvd, RGB* vals) {
 	float t_h, t_v = hvd->value;
 
-    t_h = ((cycle_idx * 3) - (hvd->angle / M_PI * 180)) - 180;
+	t_h = ((cycle_idx * 3) - (hvd->angle / M_PI * 180)) - 180;
 	t_v = t_v - t_v * (hvd->distance / MAX_DISTANCE);
 	fast_hsi(t_h, t_v, vals);
 }
@@ -103,25 +103,25 @@ void mood_loop(void) {
 	mood_idx = ((uint8_t*)loop_data)[8];
 
 	if (fnc_counter++ >= threshold) {
-	    if (DO_BENCHMARK && bmark_counter < UART_NUM_BENCHMARKS) {
-	        _benchmarking = 1;
-	        benchmark_start();
-	        bmark_counter++;
-	    }
+		if (DO_BENCHMARK && bmark_counter < UART_NUM_BENCHMARKS) {
+			_benchmarking = 1;
+			benchmark_start();
+			bmark_counter++;
+		}
 		fnc_counter = 0;
 		fill_mood(pos_y, pos_x, hue, intensity, mood_idx);
-        if (DO_BENCHMARK && _benchmarking) {
-            benchmark_stop(0);
-            if (bmark_counter == 1) uart0_puts(MSG_BENCHMARK_START);
-            publish_benchmark(&uart0_puts, &uart0_putc, MSG_BENCHMARK_DATA);
-            if (bmark_counter == UART_NUM_BENCHMARKS) uart0_puts(MSG_BENCHMARK_STOP);
-        }
-        ws2812_setleds();
+		if (DO_BENCHMARK && _benchmarking) {
+			benchmark_stop(0);
+			if (bmark_counter == 1) uart0_puts(MSG_BENCHMARK_START);
+			publish_benchmark(&uart0_puts, &uart0_putc, MSG_BENCHMARK_DATA);
+			if (bmark_counter == UART_NUM_BENCHMARKS) uart0_puts(MSG_BENCHMARK_STOP);
+		}
+		ws2812_setleds();
 	}
 }
 
 void launch_mood(COMMAND_BUFFER* command) {
 	loop_data = command->data;
-    bmark_counter = 0;
+	bmark_counter = 0;
 	loop_fnc = &mood_loop;
 }
