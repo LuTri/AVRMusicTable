@@ -31,6 +31,12 @@ static const __flash uint8_t gamma8[] = {
 
 cRGB leds[N_PACKS];
 
+void set_led(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
+    leds[idx].r = r;
+    leds[idx].g = g;
+    leds[idx].b = b;
+}
+
 void ws2812_sendarray_mask(void);
  
 void ws2812_setleds(void) {

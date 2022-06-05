@@ -12,7 +12,8 @@ void sound(void) {
 void byte(uint16_t value) {
 	uint8_t idx;
 	for (idx = 0; idx < 16; idx++) {
-		leds[idx].r = leds[idx].g = leds[idx].b = 255 * (1 & (value >> idx));
+        uint8_t state = 255 * (1 & (value >> idx));
+        set_led(idx, state, state, state);
 	}
 	ws2812_setleds();
 }
@@ -21,7 +22,8 @@ void byte_offset(uint8_t value, uint8_t offset) {
 	uint8_t idx;
 	if (offset + 8 < N_PACKS) {
 		for (idx = 0; idx < 8; idx++) {
-			leds[idx + offset].r = leds[idx + offset].g = leds[idx + offset].b = 255 * (1 & (value >> idx));
+            uint8_t state = 255 * (1 & (value >> idx));
+            set_led(idx + offset, state, state, state);
 		}
 		ws2812_setleds();
 	}
@@ -30,24 +32,12 @@ void byte_offset(uint8_t value, uint8_t offset) {
 void boot(void) {
 	uint8_t idx;
 	for (idx = 0; idx < N_PACKS; idx++) {
-		leds[idx].r = 255 * (1 & (idx));
-		leds[idx].g = 255 * (1 & (idx >> 1));
-		leds[idx].b = 255 * (1 & (idx >> 2));
+        set_led(idx,
+                255 * (1 & (idx)),
+                255 * (1 & (idx >> 1)),
+                255 * (1 & (idx >> 2)));
 	}
 	ws2812_setleds();
-}
-
-void indicate(uint8_t pos, uint8_t r, uint8_t g, uint8_t b) {
-    leds[pos].r = r;
-    leds[pos].g = g;
-    leds[pos].b = b;
-    ws2812_setleds();
-}
-
-void indicate_t(uint8_t pos, uint8_t r, uint8_t g, uint8_t b) {
-    leds[pos].r = r;
-    leds[pos].g = g;
-    leds[pos].b = b;
 }
 
 uint8_t _add(uint8_t data) {
@@ -74,16 +64,15 @@ void display_byte(uint8_t row, uint8_t byte, uint8_t do_set_leds) {
 
     for (idx = 0; idx < 8; idx++) {
         shift = 7 - idx;
-        leds[led_pos].r = (1 - ((byte & (1 << shift)) >> shift)) * 30;
-        leds[led_pos].g = ((byte & (1 << shift)) >> shift) * 30;
-        leds[led_pos].b = 0;
+        set_led(led_pos,
+                (1 - ((byte & (1 << shift)) >> shift)) * 30,
+                ((byte & (1 << shift)) >> shift) * 30,
+                0);
 
         led_pos = (*mode)(led_pos);
     }
 
-    leds[led_pos].r = 0;
-    leds[led_pos].g = 0;
-    leds[led_pos].b = 30;
+    set_led(led_pos, 0, 0, 30);
 
     if (do_set_leds) {
         ws2812_setleds();

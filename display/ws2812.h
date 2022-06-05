@@ -19,5 +19,7 @@ void ws2812_setleds(void);
 
 cRGB leds[N_PACKS];
 
+void set_led(uint8_t idx, uint8_t r, uint8_t g, uint8_t b);
+
 #endif /* WS2812_CONFIG_H_ */
 

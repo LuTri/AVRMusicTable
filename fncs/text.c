@@ -16,9 +16,7 @@ void apply_ghosting(uint8_t col, uint8_t row, uint8_t idx, uint8_t s_r, uint8_t 
     uint8_t neighbour_idx;
     if (col < N_COLS - 1) {
         neighbour_idx = coord_to_snakish(col + 1, row);
-        leds[neighbour_idx].r = s_r;
-        leds[neighbour_idx].g = s_g;
-        leds[neighbour_idx].b = s_b;
+        set_led(neighbour_idx, s_r, s_g, s_b);
     }
 }
 
@@ -38,9 +36,10 @@ void apply_fading(uint8_t col, uint8_t row, uint8_t idx) {
 
     factor = factors[_fac_idx];
 
-    leds[idx].r = (uint8_t)(factor * leds[idx].r);
-    leds[idx].g = (uint8_t)(factor * leds[idx].g);
-    leds[idx].b = (uint8_t)(factor * leds[idx].b);
+    set_led(idx,
+            (uint8_t)(factor * leds[idx].r),
+            (uint8_t)(factor * leds[idx].g),
+            (uint8_t)(factor * leds[idx].b));
 }
 
 void _text_looper(void) {
@@ -66,9 +65,7 @@ void _text_looper(void) {
     loop_counter = 0;
 
     for (uint8_t idx = 0; idx < N_PACKS; idx++) {
-        leds[idx].r = 0;
-        leds[idx].g = 0;
-        leds[idx].b = 0;
+        set_led(idx, 0, 0, 0);
     }
 
     for (col = 0; col < N_COLS; col++) {
@@ -78,10 +75,7 @@ void _text_looper(void) {
             if (roll_idx < (short)dat_len && roll_idx >= 0 && font_pixel(data[roll_idx], t_col, row)) {
                 /* skip pre   &&   on if pixel   */
                 uint8_t idx = coord_to_snakish(col, row);
-
-                leds[idx].r = char_r;
-                leds[idx].g = char_g;
-                leds[idx].b = char_b;
+                set_led(idx, char_r, char_g, char_b);
 
                 if (fading) apply_fading(col, row, idx);
                 if (ghosting) {

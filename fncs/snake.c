@@ -51,13 +51,12 @@ void _snake(uint8_t idx,
         }
 
         if (distance <= *cmp) {
-            leds[loop_idx].r = (uint8_t)(r - (*step_r) * distance);
-            leds[loop_idx].g = (uint8_t)(g - (*step_g) * distance);
-            leds[loop_idx].b = (uint8_t)(b - (*step_b) * distance);
+            set_led(loop_idx,
+                    (uint8_t)(r - (*step_r) * distance),
+                    (uint8_t)(g - (*step_g) * distance),
+                    (uint8_t)(b - (*step_b) * distance));
         } else {
-            leds[loop_idx].r = 0;
-            leds[loop_idx].g = 0;
-            leds[loop_idx].b = 0;
+            set_led(loop_idx, 0, 0, 0);
         }
     }
     ws2812_setleds();

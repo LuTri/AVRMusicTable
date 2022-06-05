@@ -19,13 +19,9 @@ void bar_row(uint16_t value, uint8_t column, uint8_t row, float* hues) {
     if (value > THRESHHOLD_STEP * (N_ROWS - (row + 1))) {
         RGB color;
         fast_hsi(hues[row], ((float)value / (float)0xffff) * intensity, &color);
-        leds[snake_pos].r = color.r;
-        leds[snake_pos].g = color.g;
-        leds[snake_pos].b = color.b;
+        set_led(snake_pos, color.r, color.g, color.b);
     } else {
-        leds[snake_pos].r = 0;
-        leds[snake_pos].g = 0;
-        leds[snake_pos].b = 0;
+        set_led(snake_pos, 0, 0, 0);
     }
 }
 

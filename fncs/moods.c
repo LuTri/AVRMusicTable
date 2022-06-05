@@ -73,10 +73,7 @@ uint8_t fill_mood(uint8_t center_y, uint8_t center_x, float starting_h, float st
 		hvd.angle = atan2f((float)_y - center_y, (float)_x - center_x);
 
 		(*func)(&hvd, &rgb);
-
-		leds[idx].r = (rgb.r >> 4);
-		leds[idx].g = (rgb.g >> 4);
-		leds[idx].b = (rgb.b >> 4);
+		set_led(idx, rgb.r >> 4, rgb.g >> 4, rgb.b >> 4);
 	}
 	cycle_idx++;
 
