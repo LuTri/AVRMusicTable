@@ -75,7 +75,7 @@ void _text_looper(void) {
         uint8_t t_col = translate_viewport_col(viewport_offset, col, &roll_idx);
 
         for (row = 0; row < N_ROWS; row++) {
-            if (roll_idx < (short)dat_len && roll_idx >= 0 && is_pixel_for_char(data[roll_idx], t_col, row)) {
+            if (roll_idx < (short)dat_len && roll_idx >= 0 && font_pixel(data[roll_idx], t_col, row)) {
                 /* skip pre   &&   on if pixel   */
                 uint8_t idx = coord_to_snakish(col, row);
 
