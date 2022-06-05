@@ -62,10 +62,6 @@ void archive_state_member(uint8_t* member_addr) {
     while ((_state + ptr_inc) != member_addr
            && (_state + ptr_inc) != addr_checksum) ptr_inc++;
 
-    if ((_state + ptr_inc) == addr_checksum) {
-        /* INVALID?! WHAT NOW?! */
-    }
-
     update_state_byte_at(ptr_inc, 1);
 }
 
@@ -87,10 +83,12 @@ void startup_state(void) {
     if (_loaded == STATE_UNLOADED) _loaded = recover_state();
 }
 
-STATE* _get_state_ptr(void) {
+STATE* get_state_ptr(void) {
     startup_state();
     return &state;
 }
+
+/* PUBLIC API */
 
 void set_state(COMMAND_BUFFER* command) {
     startup_state();
