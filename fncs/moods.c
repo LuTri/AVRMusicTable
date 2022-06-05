@@ -4,6 +4,7 @@
 #include "../display/trans.h"
 #include "../AVRClock/benchmark.h"
 #include "OdroidUart/avr-uart/uart.h"
+#include "OdroidUart/pyconversion.h"
 #include <math.h>
 
 extern cRGB leds[N_PACKS];

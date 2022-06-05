@@ -1,6 +1,7 @@
 #include "functionalities.h"
 #include "../display/trans.h"
 #include "../text/font.h"
+#include "../OdroidUart/pyconversion.h"
 
 uint8_t translate_viewport_col(short offset, uint8_t col, short* roll_idx) {
     *roll_idx = (col + offset) / FONT_WIDTH;

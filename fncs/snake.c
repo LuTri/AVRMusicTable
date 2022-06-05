@@ -1,4 +1,5 @@
 #include "functionalities.h"
+#include "../OdroidUart/pyconversion.h"
 
 uint8_t _projection_distance(uint8_t led_idx, uint8_t snake_idx, uint8_t* is_front) {
     uint8_t tmp;

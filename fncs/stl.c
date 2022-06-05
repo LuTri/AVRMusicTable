@@ -2,6 +2,7 @@
 #include "../display/color.h"
 #include "../display/trans.h"
 #include "../state.h"
+#include "../OdroidUart/pyconversion.h"
 
 #define THRESHHOLD_STEP (0xFFFF / N_ROWS)
 
