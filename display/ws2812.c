@@ -54,6 +54,10 @@ void inline ws2812_sendarray_mask(void) {
 	uint8_t sreg_prev;
 #endif
 
+#ifdef WS2812_USE_GAMMA_CORRECTION
+    for (uint16_t idx = 0; idx < N_LEDS; idx++) data[idx] = gamma8[data[idx]];
+#endif
+
 	masklo	=~maskhi&ws2812_PORTREG;
 	maskhi |=		ws2812_PORTREG;
 
@@ -84,11 +88,7 @@ void inline ws2812_sendarray_mask(void) {
 			"		dec	%0		\n\t"	//	'1' [+2] '0' [+2]
 			"		brne loop%=	\n\t"	//	'1' [+3] '0' [+4]
 			:	"=&d" (ctr)
-#ifdef WS2812_USE_GAMMA_CORRECTION
-			:	"r" (gamma8[curbyte]),
-#else
 			:	"r" (curbyte),
-#endif
 				"I" (_SFR_IO_ADDR(ws2812_PORTREG)),
 				"r" (maskhi),
 				"r" (masklo)
