@@ -9,6 +9,13 @@
 #include "unittest.h"
 #endif
 
+#define T_CLOCK (1.0 / F_CPU)
+#define SEND_CYCLES_BIT 20.0
+
+#define C_FULL_SEND (SEND_CYCLES_BIT * N_LEDS * 8.0)
+#define T_FULL_SEND (C_FULL_SEND * T_CLOCK)
+/* approximately 3.36ms */
+
 #ifndef WS2812_PAUSE_INTERRUPTS
 #define WS2812_PAUSE_INTERRUPTS 0
 #endif
