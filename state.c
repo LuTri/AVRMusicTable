@@ -1,6 +1,7 @@
 #include "state.h"
 #include "OdroidUart/basic/fletcher.h"
 #include "OdroidUart/avr-uart/uart.h"
+#include "OdroidUart/pyconversion.h"
 
 #include <avr/eeprom.h>
 
@@ -92,12 +93,20 @@ STATE* get_state_ptr(void) {
 
 void set_state(COMMAND_BUFFER* command) {
     startup_state();
-    uint16_t* misc_data = (uint16_t*)(&(command->data));
-    float* hue_ptr = (float*)(&(misc_data[3]));
+    float* hue_ptr = (float*)(&(command->data[6]));
 
-    state.stl_intensity = misc_data[0];
-    state.stl_fnc_counts = misc_data[1];
-    state.stl_dim_counts = misc_data[2];
+    state.stl_intensity = dualbyte(
+        command->data[0],
+        command->data[1]
+    );
+    state.stl_fnc_counts = dualbyte(
+        command->data[2],
+        command->data[3]
+    );
+    state.stl_dim_counts = dualbyte(
+        command->data[4],
+        command->data[5]
+    );
 
     for (uint8_t idx = 0; idx < N_ROWS; idx++) {
         state.stl_hues[idx] = hue_ptr[idx];
@@ -114,14 +123,14 @@ void get_state(void) {
 
     uart0_putc(_loaded);
 
-    uart0_putc(((uint8_t*)&state.stl_intensity)[0]);
     uart0_putc(((uint8_t*)&state.stl_intensity)[1]);
+    uart0_putc(((uint8_t*)&state.stl_intensity)[0]);
 
-    uart0_putc(((uint8_t*)&state.stl_fnc_counts)[0]);
     uart0_putc(((uint8_t*)&state.stl_fnc_counts)[1]);
+    uart0_putc(((uint8_t*)&state.stl_fnc_counts)[0]);
 
-    uart0_putc(((uint8_t*)&state.stl_dim_counts)[0]);
     uart0_putc(((uint8_t*)&state.stl_dim_counts)[1]);
+    uart0_putc(((uint8_t*)&state.stl_dim_counts)[0]);
 
     for (uint8_t idx = 0; idx < N_ROWS; idx++) {
         float* cur = &(state.stl_hues[idx]);
