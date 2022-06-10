@@ -4,6 +4,11 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
+
+#if WS2812_PAUSE_INTERRUPTS
+#include "../OdroidUart/commands.h"
+#endif
+
 #else
 #include "unittest.h"
 #endif
@@ -62,6 +67,8 @@ void inline ws2812_sendarray_mask(void) {
 	maskhi |=		ws2812_PORTREG;
 
 #if WS2812_PAUSE_INTERRUPTS
+    /* Don't get interrupted, but also don't mess up time critical processes */
+    while (data_incoming()) _delay_us(T_CMD_MIN_US / 2);
 	sreg_prev=SREG;
 	cli();
 #endif
