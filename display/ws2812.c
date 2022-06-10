@@ -100,3 +100,100 @@ void inline ws2812_sendarray_mask(void) {
 	SREG=sreg_prev;
 #endif
 }
+
+/* Clock ticks for signaling 0 and 1 to ws2812 */
+
+//#define C_1_HIGH 12  // ~.7us
+//#define C_1_LOW  11  // ~.6us
+//
+//#define C_0_HIGH  7  // ~.35us
+//#define C_0_LOW  14  // ~.8us
+
+#define C_1_HIGH 10  // ~.7us
+#define C_1_LOW  9  // ~.6us
+
+#define C_0_HIGH  6  // ~.35us
+#define C_0_LOW  12  // ~.8us
+
+
+#define TOTAL_BITS (N_COLS * N_ROWS * 3 * 8)
+
+
+volatile uint16_t cnt;
+volatile uint8_t* data;
+
+inline void put_pwm_bit(void) {
+    uint8_t mod = (--cnt) % 8;
+    OCR0B = (*data & (1 << mod)) ? C_1_HIGH : C_0_HIGH;
+    data += 1 & !mod;
+}
+
+void ws2812_pwm_out(void) {
+    sei();
+    /* Set ISR controlled PWM pin as output (OC0B connected to PD5)*/
+    DDRD |= (1 << PD5);
+    DDRB |= (1 << PB5);
+
+    TCNT0 = 0;
+
+    /* Initialize first PWM value */
+    cnt = TOTAL_BITS;
+    data = (uint8_t*)&leds;
+
+    put_pwm_bit();
+
+    /* full cycle length */
+    OCR0A = C_1_HIGH + C_1_LOW;
+
+    /* Mocking all white */
+    //OCR0B = C_1_HIGH;
+
+    /* SET OCB1 @ bottom, clear @ Compare match */
+    TCCR0A = (1 << COM0B1) | (1 << WGM01) | (1 << WGM00);
+    TCCR0B = (1 << WGM02);
+
+    /* Enable overflow interrupt */
+    TIMSK0 = (1 << TOIE0);
+
+    /* Run at F_CPU speed */
+    TCCR0B |= (1 << CS00);
+}
+
+//void ws2812_pwm_out(void) {
+//    sei();
+//    /* Set ISR controlled PWM pin as output (OC0B connected to PD5)*/
+//    DDRD |= (1 << PD5);
+//
+//    TCNT0 = 0;
+//
+//    /* Initialize first PWM value */
+//    cnt = TOTAL_BITS;
+//    data = (uint8_t*)&leds;
+//
+//    put_pwm_bit();
+//
+//    /* full cycle length */
+//    OCR0A = C_1_HIGH + C_1_LOW;
+//
+//    /* SET OCB1 @ bottom, clear @ Compare match */
+//    TCCR0A = (1 << COM0B1) | (1 << WGM01);
+//    //TCCR0B = (1 << WGM02);
+//
+//    /* Enable overflow interrupt */
+//    TIMSK0 = (1 << TOIE0);
+//
+//    /* Run at F_CPU speed */
+//    TCCR0B |= (1 << CS00);
+//}
+
+ISR(TIMER0_OVF_vect) {
+    /* Sent next bit cycle */
+    put_pwm_bit();
+    //cnt--;
+    /* Disable timer when all data is sent */
+    TCCR0B &= ~(1 & !(cnt) << CS00);
+    //if (cnt == 0) {
+    //    TCCR0B &= ~(1 << CS00);
+    //    PORTB |= (1 << PB5);
+    //}
+}

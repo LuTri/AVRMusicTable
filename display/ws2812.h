@@ -16,6 +16,7 @@
 typedef struct { uint8_t g; uint8_t r; uint8_t b; } cRGB;
 
 void ws2812_setleds(void);
+void ws2812_pwm_out(void);
 
 cRGB leds[N_PACKS];
 
