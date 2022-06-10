@@ -136,3 +136,46 @@ void handle_data(void) {
 			break;
 	}
 }
+
+/* Let (*loop_fnc) be invoked on every compare match to LOOP_CNT_MAX, with
+ * the Timer2 running with prescaling 1024. The resulting invocations per
+ * second are: 1 / ((1 / F_CPU) * 1024 * LOOP_CNT_MAX) = ~61.274 for
+ * LOOP_CNT_MAX==0xFF */
+
+#ifndef LOOP_CNT_MAX
+#define LOOP_CNT_MAX 200
+#endif
+
+void start_loop_timer(void) {
+    /* Enable CTC mode*/
+    TCCR2A = (1 << WGM21);
+
+    /* Clear and set TOP value */
+    TCNT2 = 0;
+    OCR2A = LOOP_CNT_MAX;
+
+    /* enable TIMER2 CTC Interrupt */
+    TIMSK2 = (1 << OCIE2A);
+
+    /* set Prescaler 1024 */
+    TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
+}
+
+volatile uint8_t NEXT_LOOP = 0;
+
+void main_loop(void) {
+    start_loop_timer();
+    while(1) {
+        handle_data();
+        if (NEXT_LOOP) {
+            NEXT_LOOP = 0;
+            if (loop_fnc) {
+                (*loop_fnc)();
+            }
+        }
+    }
+}
+
+ISR(TIMER2_COMPA_vect, ISR_NOBLOCK) {
+    NEXT_LOOP = 1;
+}

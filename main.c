@@ -10,8 +10,5 @@ int main(void) {
     uart_setup();
     sei();
 
-    while(1) {
-        handle_data();
-        if (loop_fnc) (*loop_fnc)();
-    }
+    main_loop();
 }

@@ -5,6 +5,7 @@
 #include "OdroidUart/commands.h"
 
 void handle_data(void);
+void main_loop(void);
 
 void snake(COMMAND_BUFFER* command);
 void slave(COMMAND_BUFFER* command);
