@@ -89,7 +89,12 @@ void stl_loop(void) {
     }
 
     new_stl = 0;
-    ws2812_setleds();
+    if (ws2812_setleds()) {
+        /* ERROR */
+        GET_STATE(n_errors_reboot)++;
+    } else {
+        GET_STATE(benchmark_samples)++;
+    }
 
     /* Don't loop when there's nothing to loop over!*/
     if (darks == N_COLS) {

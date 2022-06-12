@@ -132,6 +132,12 @@ void get_state(void) {
     uart0_putc(((uint8_t*)&state.stl_dim_counts)[1]);
     uart0_putc(((uint8_t*)&state.stl_dim_counts)[0]);
 
+    uart0_putc(((uint8_t*)&state.n_errors_reboot)[1]);
+    uart0_putc(((uint8_t*)&state.n_errors_reboot)[0]);
+    
+    uart0_putc(((uint8_t*)&state.benchmark_samples)[1]);
+    uart0_putc(((uint8_t*)&state.benchmark_samples)[0]);
+
     for (uint8_t idx = 0; idx < N_ROWS; idx++) {
         float* cur = &(state.stl_hues[idx]);
         for (uint8_t f_idx = 0; f_idx < sizeof(float); f_idx++) {
