@@ -42,68 +42,85 @@ void set_led(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
     leds[idx].b = b;
 }
 
-void ws2812_sendarray_mask(void);
+uint8_t ws2812_sendarray_mask(void);
  
-void ws2812_setleds(void) {
-	ws2812_DDRREG |= ws2812_pin; // Enable DDR
-	ws2812_sendarray_mask();
-	_delay_us(50);
+uint8_t ws2812_setleds(void) {
+    uint8_t _err = 0;
+    ws2812_DDRREG |= ws2812_pin; // Enable DDR
+    _err = ws2812_sendarray_mask();
+    _delay_us(50);
+
+    return _err;
 }
 
-void inline ws2812_sendarray_mask(void) {
-	uint8_t* data = (uint8_t*)(leds);
-	uint16_t datlen = N_LEDS;
-	uint8_t maskhi = ws2812_pin;
-	uint8_t curbyte,ctr,masklo;
+uint8_t asm_ws2812_out(uint8_t** data, uint8_t maskhi) {
+
+    uint8_t masklo, ctr, curbyte;
+    uint16_t datlen = N_LEDS / WS2812_SPLIT;
+
 #if WS2812_PAUSE_INTERRUPTS
-	uint8_t sreg_prev;
+    uint8_t sreg_prev;
 #endif
+
+    masklo    =~maskhi&ws2812_PORTREG;
+
+#if WS2812_PAUSE_INTERRUPTS
+    /* Don't get interrupted, but also don't mess up time critical processes */
+    if (data_incoming()) {
+        _delay_us(T_CMD_MIN_US);
+        if (data_incoming()) return 1;
+    }
+    sreg_prev=SREG;
+    cli();
+#endif
+
+#ifndef UNITTEST
+    while (datlen--) {
+    curbyte=*(*data)++;
+
+        asm volatile(
+            "    ldi %0,8      \n\t"  // Set ctr to 8
+            "loop%=:           \n\t"
+            "      out %2,%3   \n\t"  // Out 1 to PINS
+            "    nop           \n\t"
+            "    rjmp .+0      \n\t"  // Cycle waste
+            "    sbrs %1,7     \n\t"  // Skip if bit 7 set
+            "      out %2,%4   \n\t"  // Out 0 to PINS
+            "    lsl %1        \n\t"  // left shift curbyte
+            "    nop           \n\t"
+            "    rjmp .+0      \n\t"  // Cycle waste
+            "    rjmp .+0      \n\t"  // Cycle waste
+            "    rjmp .+0      \n\t"  // Cacle waste
+            "    out %2,%4     \n\t"  // Out 0 to PINS
+            "    rjmp .+0      \n\t"  // Cycle waste
+            "      dec %0      \n\t"  // Decrement ctr
+            "      brne loop%= \n\t"  // back to loop
+            :    "=&d" (ctr)
+            :    "r" (curbyte),
+                 "I" (_SFR_IO_ADDR(ws2812_PORTREG)),
+                 "r" (maskhi),
+                 "r" (masklo)
+        );
+    }
+#if WS2812_PAUSE_INTERRUPTS
+    SREG=sreg_prev;
+#endif
+
+#endif /* ifndef UNITTEST */
+    return 0;
+}
+
+inline uint8_t ws2812_sendarray_mask(void) {
+    uint8_t* data = (uint8_t*)(leds);
+    uint8_t err = 0;
 
 #ifdef WS2812_USE_GAMMA_CORRECTION
     for (uint16_t idx = 0; idx < N_LEDS; idx++) data[idx] = gamma8[data[idx]];
 #endif
 
-	masklo	=~maskhi&ws2812_PORTREG;
-	maskhi |=		ws2812_PORTREG;
-
-#if WS2812_PAUSE_INTERRUPTS
-    /* Don't get interrupted, but also don't mess up time critical processes */
-    while (data_incoming()) _delay_us(T_CMD_MIN_US / 2);
-	sreg_prev=SREG;
-	cli();
-#endif
-
-#ifndef UNITTEST
-	while (datlen--) {
-	curbyte=*data++;
-	
-		asm volatile(
-			"		ldi	%0,8	\n\t"
-			"loop%=:			\n\t"
-			"		out	%2,%3	\n\t"	//	'1' [01] '0' [01] - re
-			"	nop				\n\t"
-			"	rjmp .+0		\n\t"
-			"		sbrs	%1,7\n\t"	//	'1' [03] '0' [02]
-			"		out	%2,%4	\n\t"	//	'1' [--] '0' [03] - fe-low
-			"		lsl	%1		\n\t"	//	'1' [04] '0' [04]
-			"	nop				\n\t"
-			"	rjmp .+0		\n\t"
-			"	rjmp .+0		\n\t"
-			"	rjmp .+0		\n\t"
-			"		out	%2,%4	\n\t"	//	'1' [+1] '0' [+1] - fe-high
-			"	rjmp .+0		\n\t"
-			"		dec	%0		\n\t"	//	'1' [+2] '0' [+2]
-			"		brne loop%=	\n\t"	//	'1' [+3] '0' [+4]
-			:	"=&d" (ctr)
-			:	"r" (curbyte),
-				"I" (_SFR_IO_ADDR(ws2812_PORTREG)),
-				"r" (maskhi),
-				"r" (masklo)
-		);
-	}
-#endif /* ifndef UNITTEST */
-
-#if WS2812_PAUSE_INTERRUPTS
-	SREG=sreg_prev;
-#endif
+    err |= asm_ws2812_out(&data, (1 << PB4));
+    err |= asm_ws2812_out(&data, (1 << PB3));
+    err |= asm_ws2812_out(&data, (1 << PB2));
+    err |= asm_ws2812_out(&data, (1 << PB1));
+    return err;
 }

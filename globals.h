@@ -4,8 +4,9 @@
 #define N_COLS 14
 #define N_ROWS 8
 
+#define WS2812_SPLIT 4
 #define ws2812_port B     // Data port
-#define ws2812_pin  0b00010000     // Data out pin -> D12 / PB4
+#define ws2812_pin  0b00011110     // Data out pin -> D12-D9 / PB4-PB1
 
 #define CONCAT(a, b)            a ## b
 #define CONCAT_EXP(a, b)   CONCAT(a, b)
