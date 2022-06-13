@@ -13,6 +13,8 @@
 #include "unittest.h"
 #endif
 
+uint8_t block_output = 0;
+
 
 #ifdef WS2812_USE_GAMMA_CORRECTION
 static const __flash uint8_t gamma8[] = {
@@ -58,21 +60,11 @@ uint8_t asm_ws2812_out(uint8_t** data, uint8_t maskhi) {
     uint8_t masklo, ctr, curbyte;
     uint16_t datlen = N_LEDS / WS2812_SPLIT;
 
-#if WS2812_PAUSE_INTERRUPTS
-    uint8_t sreg_prev;
-#endif
-
     masklo    =~maskhi&ws2812_PORTREG;
 
-#if WS2812_PAUSE_INTERRUPTS
-    /* Don't get interrupted, but also don't mess up time critical processes */
-    if (data_incoming()) {
-        _delay_us(T_CMD_MIN_US);
-        if (data_incoming()) return 1;
+    if (block_output) {
+        return 1;
     }
-    sreg_prev=SREG;
-    cli();
-#endif
 
 #ifndef UNITTEST
     while (datlen--) {
@@ -102,10 +94,6 @@ uint8_t asm_ws2812_out(uint8_t** data, uint8_t maskhi) {
                  "r" (masklo)
         );
     }
-#if WS2812_PAUSE_INTERRUPTS
-    SREG=sreg_prev;
-#endif
-
 #endif /* ifndef UNITTEST */
     return 0;
 }
@@ -113,14 +101,28 @@ uint8_t asm_ws2812_out(uint8_t** data, uint8_t maskhi) {
 inline uint8_t ws2812_sendarray_mask(void) {
     uint8_t* data = (uint8_t*)(leds);
     uint8_t err = 0;
+#if WS2812_PAUSE_INTERRUPTS
+    uint8_t sreg_prev;
+#endif
 
 #ifdef WS2812_USE_GAMMA_CORRECTION
     for (uint16_t idx = 0; idx < N_LEDS; idx++) data[idx] = gamma8[data[idx]];
+#endif
+
+#if WS2812_PAUSE_INTERRUPTS
+    /* Don't get interrupted, but also don't mess up time critical processes */
+    sreg_prev=SREG;
+    cli();
 #endif
 
     err |= asm_ws2812_out(&data, (1 << PB4));
     err |= asm_ws2812_out(&data, (1 << PB3));
     err |= asm_ws2812_out(&data, (1 << PB2));
     err |= asm_ws2812_out(&data, (1 << PB1));
+
+#if WS2812_PAUSE_INTERRUPTS
+    SREG=sreg_prev;
+#endif
+
     return err;
 }

@@ -132,6 +132,12 @@ void handle_data(void) {
 		case CMD_GET_STATE:
 			get_state();
 			break;
+        case CMD_BLOCK:
+            block_output = 1;
+            break;
+        case CMD_RELEASE:
+            block_output = 0;
+            break;
 		default:
 			break;
 	}

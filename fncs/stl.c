@@ -91,9 +91,7 @@ void stl_loop(void) {
     new_stl = 0;
     if (ws2812_setleds()) {
         /* ERROR */
-        GET_STATE(n_errors_reboot)++;
-    } else {
-        GET_STATE(benchmark_samples)++;
+        GET_STATE(stl_errors)++;
     }
 
     /* Don't loop when there's nothing to loop over!*/

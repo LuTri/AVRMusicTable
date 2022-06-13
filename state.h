@@ -15,21 +15,25 @@
 #define STATE_UNLOADED      0
 
 typedef struct {
-    uint16_t flags;                 // *STATE + 0
-    uint16_t n_errors_reboot;       // *STATE + 2
-    uint8_t benchmark_samples;      // *STATE + 4
-    uint8_t reboot_time_error;      // *STATE + 5
-    uint8_t reboot_time_general;    // *STATE + 6
-    uint8_t current_mode;           // *STATE + 7
-    uint16_t stl_intensity;         // *STATE + 8
-    uint16_t stl_fnc_counts;        // *STATE + 10
-    uint16_t stl_dim_counts;        // *STATE + 12
-    float stl_hues[N_COLS];         // *STATE + 14, 18, 22, 26, 30, 34, 38, 42
-    uint16_t checksum;              // *STATE + 46
+    uint16_t flags;
+    uint16_t n_errors_reboot;
+    uint8_t benchmark_samples;
+    uint8_t reboot_time_error;
+    uint8_t reboot_time_general;
+    uint8_t current_mode;
+    uint16_t stl_errors;
+    uint16_t stl_intensity;
+    uint16_t stl_fnc_counts;
+    uint16_t stl_dim_counts;
+    float stl_hues[N_ROWS];
+    uint16_t checksum;
 } STATE;
 
 void archive_state_member(uint8_t* member_addr);
 STATE* get_state_ptr(void);
+
+#define UPDATE_MEMBER(member, write_checksum) \
+    (update_eeprom(&member, sizeof(member), write_checksum))
 
 #define GET_STATE(member) \
     (get_state_ptr()->member)
@@ -38,7 +42,8 @@ STATE* get_state_ptr(void);
     (GET_STATE(flags) & (1 << flag))
 
 #define PUT_STATE(member, value) \
-    (get_state_ptr()->member = value; archive_state_member(&(get_state_ptr()->member)));
+    (get_state_ptr()->member = value; UPDATE_MEMBER(get_state_ptr()->member, 1));
+
 
 extern STATE state;
 

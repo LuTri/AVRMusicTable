@@ -28,5 +28,7 @@ cRGB leds[N_PACKS];
 
 void set_led(uint8_t idx, uint8_t r, uint8_t g, uint8_t b);
 
+extern uint8_t block_output;
+
 #endif /* WS2812_CONFIG_H_ */
 

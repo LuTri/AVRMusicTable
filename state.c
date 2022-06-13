@@ -38,32 +38,7 @@ void initialize_state(void) {
     state.stl_intensity = 0;
     state.stl_fnc_counts = 0;
     state.stl_dim_counts = 0;
-}
-
-void update_state_byte_at(uint8_t idx, uint8_t write_checksum) {
-    uint8_t size_t = 0;
-    if (idx < 4) size_t = sizeof(uint16_t);
-    else if (idx < 8) size_t = sizeof(uint8_t);
-    else if (idx < 14) size_t = sizeof(uint16_t);
-    else size_t = sizeof(float) * N_COLS;
-
-    eeprom_update_block(((uint8_t*)&state) + idx, eeState + idx, size_t);
-
-    if (write_checksum) {
-        _update_checksum();
-        eeprom_update_block(((uint8_t*)&state) + (sizeof(STATE) - sizeof(uint16_t)), eeState + (sizeof(STATE) - sizeof(uint16_t)), sizeof(uint16_t));
-    }
-}
-
-void archive_state_member(uint8_t* member_addr) {
-    uint8_t* _state = (uint8_t*)&state;
-    uint8_t* addr_checksum = (uint8_t*)&(state.checksum);
-
-    uint8_t ptr_inc = 0;
-    while ((_state + ptr_inc) != member_addr
-           && (_state + ptr_inc) != addr_checksum) ptr_inc++;
-
-    update_state_byte_at(ptr_inc, 1);
+    state.stl_errors = 0;
 }
 
 void archive_state(void) {
@@ -93,28 +68,34 @@ STATE* get_state_ptr(void) {
 
 void set_state(COMMAND_BUFFER* command) {
     startup_state();
-    float* hue_ptr = (float*)(&(command->data[6]));
+    float* hue_ptr = (float*)(&(command->data[16]));
+
+    state.flags = dualbyte(command->data[0], command->data[1]);
+    state.n_errors_reboot = dualbyte(command->data[2], command->data[3]);
+    state.benchmark_samples = command->data[4];
+    state.reboot_time_error = command->data[5];
+    state.reboot_time_general = command->data[6];
+    state.current_mode = command->data[7];
+    state.stl_errors = dualbyte(command->data[8], command->data[9]);
 
     state.stl_intensity = dualbyte(
-        command->data[0],
-        command->data[1]
+        command->data[11],
+        command->data[10]
     );
     state.stl_fnc_counts = dualbyte(
-        command->data[2],
-        command->data[3]
+        command->data[12],
+        command->data[13]
     );
     state.stl_dim_counts = dualbyte(
-        command->data[4],
-        command->data[5]
+        command->data[14],
+        command->data[15]
     );
 
     for (uint8_t idx = 0; idx < N_ROWS; idx++) {
         state.stl_hues[idx] = hue_ptr[idx];
     }
-    update_state_byte_at(8, 0);
-    update_state_byte_at(10, 0);
-    update_state_byte_at(12, 0);
-    update_state_byte_at(14, 1);
+
+    archive_state();
 }
 
 void get_state(void) {
@@ -123,8 +104,22 @@ void get_state(void) {
 
     uart0_putc(_loaded);
 
-    uart0_putc(((uint8_t*)&state.stl_intensity)[1]);
+    uart0_putc(((uint8_t*)&state.flags)[1]);
+    uart0_putc(((uint8_t*)&state.flags)[0]);
+    
+    uart0_putc(((uint8_t*)&state.n_errors_reboot)[1]);
+    uart0_putc(((uint8_t*)&state.n_errors_reboot)[0]);
+
+    uart0_putc(((uint8_t*)&state.benchmark_samples)[0]);
+    uart0_putc(((uint8_t*)&state.reboot_time_error)[0]);
+    uart0_putc(((uint8_t*)&state.reboot_time_general)[0]);
+    uart0_putc(((uint8_t*)&state.current_mode)[0]);
+
+    uart0_putc(((uint8_t*)&state.stl_errors)[1]);
+    uart0_putc(((uint8_t*)&state.stl_errors)[0]);
+
     uart0_putc(((uint8_t*)&state.stl_intensity)[0]);
+    uart0_putc(((uint8_t*)&state.stl_intensity)[1]);
 
     uart0_putc(((uint8_t*)&state.stl_fnc_counts)[1]);
     uart0_putc(((uint8_t*)&state.stl_fnc_counts)[0]);
@@ -132,17 +127,12 @@ void get_state(void) {
     uart0_putc(((uint8_t*)&state.stl_dim_counts)[1]);
     uart0_putc(((uint8_t*)&state.stl_dim_counts)[0]);
 
-    uart0_putc(((uint8_t*)&state.n_errors_reboot)[1]);
-    uart0_putc(((uint8_t*)&state.n_errors_reboot)[0]);
-    
-    uart0_putc(((uint8_t*)&state.benchmark_samples)[1]);
-    uart0_putc(((uint8_t*)&state.benchmark_samples)[0]);
-
-    for (uint8_t idx = 0; idx < N_ROWS; idx++) {
-        float* cur = &(state.stl_hues[idx]);
-        for (uint8_t f_idx = 0; f_idx < sizeof(float); f_idx++) {
-            uart0_putc(((uint8_t*)cur)[f_idx]);
-        }
+    for (uint8_t idx = 0; idx < sizeof(state.stl_hues); idx++) {
+        uart0_putc(((uint8_t*)&state.stl_hues)[idx]);
     }
+    
+    uart0_putc(((uint8_t*)&state.checksum)[1]);
+    uart0_putc(((uint8_t*)&state.checksum)[0]);
+
     uart0_puts(MSG_STATE_DATA_STOP);
 }
